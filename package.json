@@ -21,12 +21,14 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\""
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-validator": "^6.11.1",
     "firebase-admin": "^9.9.0",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.10",
     "@types/express": "^4.17.11",
     "@types/morgan": "^1.9.2",
     "@types/node": "^15.3.1",
