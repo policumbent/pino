@@ -1,9 +1,11 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 
 import morgan from 'morgan'; // logging middleware
 import { check, validationResult } from 'express-validator'; // validation middleware
 import { checkIfAuthenticated, createUser } from './auth-middleware';
+import { getData } from './influx-test';
 import './mqtt-service'
 
 const app = express();
@@ -34,4 +36,15 @@ app.post('/auth/signup', createUser);
 
 app.get('/test', checkIfAuthenticated, (req: any, res: any) =>
   res.status(200).json({ msg: 'Pino is authenticated' })
+);
+
+app.get('/query', checkIfAuthenticated, (req: any, res: any) => {
+  // test with start: -50h measurement: mqtt_consumer
+    const start = req.query.start
+    const measurement = req.query.measurement
+
+    // to improve the query performance
+    getData(start, measurement)
+      .then(data=>res.status(200).json(data))
+  }
 );
