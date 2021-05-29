@@ -4,7 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan'; // logging middleware
 import { check, validationResult } from 'express-validator'; // validation middleware
 import { checkIfAuthenticated, createUser } from './auth-middleware';
-
+import './mqtt-service'
 
 const app = express();
 const PORT = 3001;
@@ -35,4 +35,3 @@ app.post('/auth/signup', createUser);
 app.get('/test', checkIfAuthenticated, (req: any, res: any) =>
   res.status(200).json({ msg: 'Pino is authenticated' })
 );
-
