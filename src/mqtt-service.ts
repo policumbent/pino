@@ -47,7 +47,6 @@ client.on('message', (topic: string, message: Buffer) => {
     // @ts-ignore
     bikeValues[bikeName][elements[3]] = (typeof bikeValues[bikeName][elements[3]] === "number") ?
       parseFloat(message.toString()) : message.toString();
-    // tslint:disable-next-line:no-console
     console.log(bikeValues);
   }
   else if (elements[0] === 'weather_stations'){
@@ -56,7 +55,6 @@ client.on('message', (topic: string, message: Buffer) => {
       return;
     // @ts-ignore
     weatherValues[wsName][elements[2]] = parseFloat(message.toString());
-    // tslint:disable-next-line:no-console
     console.log(weatherValues);
   }
 })

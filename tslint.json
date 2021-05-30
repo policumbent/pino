@@ -9,9 +9,9 @@
       false
     ],
     "no-console": {
-      "severity": "warning"
-   } 
+      "severity": "off"
+   }
   },
   "rulesDirectory": []
-  
+
 }
