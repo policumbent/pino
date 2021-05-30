@@ -4,7 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan'; // logging middleware
 // import { check, validationResult } from 'express-validator'; // validation middleware
 import { checkIfAuthenticated, createUser } from './auth-middleware';
-import {values} from "./mqtt-service";
+import {bikeValues, weatherValues} from "./mqtt-service";
 
 const app = express();
 const PORT = 3001;
@@ -25,7 +25,8 @@ app.post('/kiss', (req: any, res: any) =>
   res.status(200).json({ msg: `Pino doesn't cry anymore` }),
 );
 
-app.get('/live', (req: any, res: any) => res.status(200).json(values));
+app.get('/bike_live', (req: any, res: any) => res.status(200).json(bikeValues));
+app.get('/weather_live', (req: any, res: any) => res.status(200).json(weatherValues));
 
 app.listen(PORT, () => {
   // tslint:disable-next-line:no-console
