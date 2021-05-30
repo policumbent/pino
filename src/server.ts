@@ -6,7 +6,7 @@ import morgan from 'morgan'; // logging middleware
 import { check, validationResult } from 'express-validator'; // validation middleware
 import { checkIfAuthenticated, createUser } from './auth-middleware';
 import { getData } from './influx-test';
-import './mqtt-service'
+import './mqtt-service';
 
 const app = express();
 const PORT = 3001;
@@ -35,16 +35,14 @@ app.listen(PORT, () => {
 app.post('/auth/signup', createUser);
 
 app.get('/test', checkIfAuthenticated, (req: any, res: any) =>
-  res.status(200).json({ msg: 'Pino is authenticated' })
+  res.status(200).json({ msg: 'Pino is authenticated' }),
 );
 
 app.get('/query', checkIfAuthenticated, (req: any, res: any) => {
   // test with start: -50h measurement: mqtt_consumer
-    const start = req.query.start
-    const measurement = req.query.measurement
+  const start = req.query.start;
+  const measurement = req.query.measurement;
 
-    // to improve the query performance
-    getData(start, measurement)
-      .then(data=>res.status(200).json(data))
-  }
-);
+  // to improve the query performance
+  getData(start, measurement).then((data) => res.status(200).json(data));
+});
