@@ -30,7 +30,7 @@ export const setUserAdmin = async (req: any, res: any, value: boolean) => {
       });
     })
     .then(() => {
-        res.status(200).json({ msg: `${email} is now admin` })
+        res.status(200).json({ msg: value ? `${email} is now admin` : `${email} removed from admin` })
     })
     .catch((err) => {
         res.status(500).json({ msg: 'Server error' })
