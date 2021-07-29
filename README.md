@@ -17,5 +17,5 @@ Pino il serverino
 
 1. (Eseguire solo la prima volta) `Creare un nuovo token github seguendo le istruzioni [qui](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token), con il permesso di scrivere packages e salvalo in un file `~/GH_TOKEN.txt`.
 1. (Eseguire solo la prima volta) `cat ~/GH_TOKEN.txt | sudo docker login ghcr.io -u username_github --password-stdin`
-2. `sudo docker build -t ghcr.io//policumbent/pino:latest .`
+2. `sudo docker build -t ghcr.io/policumbent/pino:latest .`
 3. `sudo docker push ghcr.io/policumbent/pino:latest`
