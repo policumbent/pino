@@ -1,7 +1,12 @@
 import mqtt from 'mqtt';
 import { Sensors } from './sensors';
-import Dict = NodeJS.Dict;
 import { WeatherData } from './weather-data';
+import { ws, bikes, getDestinationMessage, isBike, isWeatherStation } from './utils';
+
+import Dict = NodeJS.Dict;
+
+export const bikeValues: Dict<Sensors> = {};
+export const weatherValues: Dict<WeatherData> = {};
 
 const client = mqtt.connect({
   protocol: 'mqtts',
@@ -11,12 +16,6 @@ const client = mqtt.connect({
   username: 'stefano',
   password: 'martafaschifo!',
 });
-
-const bikes = ['taurusx', 'taurus', 'phoenix'];
-const ws = ['ws1', 'ws_test'];
-
-export const bikeValues: Dict<Sensors> = {};
-export const weatherValues: Dict<WeatherData> = {};
 
 bikes.forEach((bike) => (bikeValues[bike] = new Sensors(bike)));
 ws.forEach((w) => (weatherValues[w] = new WeatherData()));
@@ -43,24 +42,19 @@ client.on('connect', () => {
 client.on('message', (topic: string, message: Buffer) => {
   // tslint:disable-next-line:no-console
   console.log(topic, message.toString());
-  const elements = topic.split('/');
-  if (elements[0] === 'bikes') {
-    const bikeName = elements[1];
-    if (!bikes.includes(bikeName)) return;
-    // todo: gabri vieni in mio soccorso?
-    //  devo fare l'update dei valori ma typescript
-    //  si incazza se faccio accesso stile dizionario
-    // @ts-ignore
-    bikeValues[bikeName][elements[3]] =
-      typeof bikeValues[bikeName][elements[3]] === 'number'
-        ? parseFloat(message.toString())
-        : message.toString();
+
+  const destination = getDestinationMessage(topic);
+
+  if (isBike(destination) && bikes.includes(destination.name)) {
+    const bike = bikeValues[destination.name]!;
+    if (typeof bike[destination.id] === 'number') {
+      bike[destination.id] = Number(message);
+    } else {
+      bike[destination.id] = String(message);
+    }
     console.log(bikeValues);
-  } else if (elements[0] === 'weather_stations') {
-    const wsName = elements[1];
-    if (!ws.includes(wsName)) return;
-    // @ts-ignore
-    weatherValues[wsName][elements[2]] = parseFloat(message.toString());
+  } else if (isWeatherStation(destination) && ws.includes(destination.name)) {
+    weatherValues[destination.name]![destination.id] = Number(message);
     console.log(weatherValues);
   }
 });

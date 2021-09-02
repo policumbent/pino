@@ -1,4 +1,6 @@
 export class WeatherData {
+  [key: string]: number;
+
   temperature: number;
   humidity: number;
   pressure: number;

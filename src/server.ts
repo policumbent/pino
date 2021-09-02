@@ -7,6 +7,7 @@ import { check, validationResult } from 'express-validator'; // validation middl
 import { checkIfAuthenticated, checkIfAdmin } from './auth-middleware';
 import { createUser, setUserAdmin } from './auth-service';
 import { getData } from './influx-test';
+import {bikeValues, weatherValues} from "./mqtt-service";
 
 const app = express();
 const PORT = 3001;
@@ -26,9 +27,6 @@ app.get('/ueue', (req: any, res: any) => res.status(200).json({ msg: 'Pino is cr
 app.post('/kiss', (req: any, res: any) =>
   res.status(200).json({ msg: `Pino doesn't cry anymore` }),
 );
-
-app.get('/bike_live', (req: any, res: any) => res.status(200).json(bikeValues));
-app.get('/weather_live', (req: any, res: any) => res.status(200).json(weatherValues));
 
 app.post('/auth/signup', createUser);
 
@@ -55,6 +53,9 @@ app.get('/query', checkIfAdmin, (req: any, res: any) => {
   // to improve the query performance
   getData(start, measurement).then((data) => res.status(200).json(data));
 });
+
+app.get('/bike_live', (req: any, res: any) => res.status(200).json(bikeValues));
+app.get('/weather_live', (req: any, res: any) => res.status(200).json(weatherValues));
 
 app.listen(PORT, () => {
   // tslint:disable-next-line:no-console

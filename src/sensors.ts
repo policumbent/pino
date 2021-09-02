@@ -1,4 +1,6 @@
 export class Sensors {
+  [key: string]: string | number;
+
   accX: number;
   accXMax: number;
   accY: number;
