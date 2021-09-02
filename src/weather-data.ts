@@ -8,7 +8,6 @@ export class WeatherData {
   wind_direction: number;
   timestamp: number;
 
-
   constructor() {
     this.temperature = 0;
     this.humidity = 0;

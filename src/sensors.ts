@@ -1,29 +1,29 @@
 export class Sensors {
-  accX: number
-  accXMax: number
-  accY: number
-  accYMax: number
-  accZ: number
-  accZMax: number
-  bikeName: string
-  cadence: number
-  cpuTemp: number
-  distance: number
+  accX: number;
+  accXMax: number;
+  accY: number;
+  accYMax: number;
+  accZ: number;
+  accZMax: number;
+  bikeName: string;
+  cadence: number;
+  cpuTemp: number;
+  distance: number;
   // tslint:disable-next-line:variable-name
-  distance_2: number
-  gear: number
-  heartrate: number
-  latitude: number
-  longitude: number
-  satellites: number
-  power: number
-  speed: number
-  speedGps: number
+  distance_2: number;
+  gear: number;
+  heartrate: number;
+  latitude: number;
+  longitude: number;
+  satellites: number;
+  power: number;
+  speed: number;
+  speedGps: number;
   // tslint:disable-next-line:variable-name
-  speed_2: number
-  time: number
-  timestamp: 0
-  deviceTypeInt: number
+  speed_2: number;
+  time: number;
+  timestamp: 0;
+  deviceTypeInt: number;
 
   constructor(bikename: string) {
     this.accX = 0;
@@ -32,7 +32,7 @@ export class Sensors {
     this.accYMax = 0;
     this.accZ = 0;
     this.accZMax = 0;
-    this.bikeName = bikename
+    this.bikeName = bikename;
     this.cadence = 0;
     this.cpuTemp = 0;
     this.distance = 0;

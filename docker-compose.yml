@@ -1,0 +1,6 @@
+version: "3"  
+services:
+  pino:
+    image: docker.pkg.github.com/policumbent/pino/pino:latest
+    ports:
+      - 3001:3001
