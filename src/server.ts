@@ -1,13 +1,14 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-
 import morgan from 'morgan'; // logging middleware
 import { check, validationResult } from 'express-validator'; // validation middleware
+
 import { checkIfAuthenticated, checkIfAdmin } from './auth-middleware';
 import { createUser, setUserAdmin } from './auth-service';
+import { bikeValues, weatherValues } from './mqtt-service';
+
 import { getData } from './influx-test';
-import {bikeValues, weatherValues} from "./mqtt-service";
 
 const app = express();
 const PORT = 3001;
@@ -20,22 +21,110 @@ app.use(cors()); // cors abilitati
 //   origin: 'https://alice.policumbent.it'
 // }));
 
-app.get('/', (req: any, res: any) => res.status(200).json({ msg: 'Pino is born' }));
+/* General APIs */
 
-app.get('/ueue', (req: any, res: any) => res.status(200).json({ msg: 'Pino is crying' }));
+/* Retrive data for defined bike
+ *
+ * params: @bike -> bike id
+ */
+app.get(
+  '/api/activities/last/:bike',
+  checkIfAuthenticated,
+  [check('bike').isInt()],
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
+    const bike = req.params.bike;
 
-app.post('/kiss', (req: any, res: any) =>
-  res.status(200).json({ msg: `Pino doesn't cry anymore` }),
+    try {
+      res.status(200).json({ msg: 'WIP api, nothing to see here' });
+    } catch {
+      res.status(500).json({
+        err: 'WIP api, nothing to see here',
+      });
+    }
+  },
 );
 
-app.post('/auth/signup', createUser);
+/* Retrive history data for defined bike
+ *
+ * params: @bike -> bike id
+ * query:  @n -> data length
+ */
+app.get(
+  '/api/activities/last/:bike',
+  checkIfAuthenticated,
+  [check('bike').isInt(), check('n').isInt()],
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
 
-app.post('/auth/makeadmin', checkIfAdmin, (req: any, res: any) => {
-  setUserAdmin(req, res, true);
+    const bike = req.params.bike;
+    const len = req.query.n;
+
+    try {
+      res.status(200).json({ msg: 'WIP api, nothing to see here' });
+    } catch {
+      res.status(500).json({
+        err: 'WIP api, nothing to see here',
+      });
+    }
+  },
+);
+
+/* ALICE APIs */
+
+/* Retrive current configuration */
+app.get('/api/alice/config', checkIfAuthenticated, async (_: any, res: any) => {
+  try {
+    res.status(200).json({ msg: 'WIP api, nothing to see here' });
+  } catch {
+    res.status(500).json({
+      err: 'WIP api, nothing to see here',
+    });
+  }
 });
-app.post('/auth/removeadmin', checkIfAdmin, (req: any, res: any) => {
-  setUserAdmin(req, res, false);
+
+/* Retrive comments */
+app.get('/api/alice/comments', checkIfAuthenticated, async (_: any, res: any) => {
+  try {
+    res.status(200).json({ msg: 'WIP api, nothing to see here' });
+  } catch {
+    res.status(500).json({
+      err: 'WIP api, nothing to see here',
+    });
+  }
 });
+
+/* Retrive notifications */
+app.get('/api/alice/notification', checkIfAuthenticated, async (_: any, res: any) => {
+  try {
+    res.status(200).json({ msg: 'WIP api, nothing to see here' });
+  } catch {
+    res.status(500).json({
+      err: 'WIP api, nothing to see here',
+    });
+  }
+});
+
+/* Users APIs */
+
+/* Create a new user */
+app.post('/api/auth/signup', createUser);
+
+/* Create a new admin */
+app.post('/api/auth/makeadmin', checkIfAdmin, (req: any, res: any) => setUserAdmin(req, res, true));
+
+/* Remove an admin */
+app.post('/api/auth/removeadmin', checkIfAdmin, (req: any, res: any) =>
+  setUserAdmin(req, res, false),
+);
+
+/* TEST API */
 
 app.get('/test', checkIfAuthenticated, (req: any, res: any) =>
   res.status(200).json({ msg: 'You are authenticated' }),
@@ -55,7 +144,10 @@ app.get('/query', checkIfAdmin, (req: any, res: any) => {
 });
 
 app.get('/bike_live', (req: any, res: any) => res.status(200).json(bikeValues));
+
 app.get('/weather_live', (req: any, res: any) => res.status(200).json(weatherValues));
+
+/* Activate the sever */
 
 app.listen(PORT, () => {
   // tslint:disable-next-line:no-console
