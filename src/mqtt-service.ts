@@ -45,7 +45,7 @@ client.on('message', (topic: string, message: Buffer) => {
 
   const destination = getDestinationMessage(topic);
 
-  if (isBike(destination) && bikes.includes(destination.name)) {
+  if (isBike(destination)) {
     const bike = bikeValues[destination.name]!;
     if (typeof bike[destination.id] === 'number') {
       bike[destination.id] = Number(message);
@@ -53,7 +53,7 @@ client.on('message', (topic: string, message: Buffer) => {
       bike[destination.id] = String(message);
     }
     console.log(bikeValues);
-  } else if (isWeatherStation(destination) && ws.includes(destination.name)) {
+  } else if (isWeatherStation(destination)) {
     weatherValues[destination.name]![destination.id] = Number(message);
     console.log(weatherValues);
   }
