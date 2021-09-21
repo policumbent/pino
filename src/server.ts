@@ -23,14 +23,14 @@ app.use(cors()); // cors abilitati
 
 /* General APIs */
 
-/* Retrive data for defined bike
+/* Retrive live data for defined bike (from mqtt)
  *
  * params: @bike -> bike id
  */
 app.get(
   '/api/activities/last/:bike',
   checkIfAuthenticated,
-  [check('bike').isInt()],
+  [check('bike').isString()],
   async (req: any, res: any) => {
     const err = validationResult(req);
     if (!err.isEmpty()) {
@@ -39,16 +39,60 @@ app.get(
     const bike = req.params.bike;
 
     try {
-      res.status(200).json({ msg: 'WIP api, nothing to see here' });
+      const data = bikeValues[bike];
+      res.status(200).json(data);
     } catch {
       res.status(500).json({
-        err: 'WIP api, nothing to see here',
+        err: 'Unable to retrive live data',
       });
     }
   },
 );
 
-/* Retrive history data for defined bike
+/* Retrive live data from all weather stations (from mqtt) */
+app.get('/api/weather/last', checkIfAuthenticated, async (req: any, res: any) => {
+  const err = validationResult(req);
+  if (!err.isEmpty()) {
+    return res.status(422).json({ err: err.array() });
+  }
+
+  try {
+    const data = weatherValues;
+    res.status(200).json(data);
+  } catch {
+    res.status(500).json({
+      err: 'Unable to retrive live data',
+    });
+  }
+});
+
+/* Retrive live data for defined weather station (from mqtt)
+ *
+ * params: @station -> station id
+ */
+app.get(
+  '/api/weather/last/:station',
+  checkIfAuthenticated,
+  [check('station').isString()],
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
+    const station = req.params.station;
+
+    try {
+      const data = weatherValues[station];
+      res.status(200).json(data);
+    } catch {
+      res.status(500).json({
+        err: 'Unable to retrive live data',
+      });
+    }
+  },
+);
+
+/* Retrive history data for defined bike (from influxdb)
  *
  * params: @bike -> bike id
  * query:  @n -> data length
@@ -56,7 +100,7 @@ app.get(
 app.get(
   '/api/activities/last/:bike',
   checkIfAuthenticated,
-  [check('bike').isInt(), check('n').isInt()],
+  [check('bike').isString(), check('n').isInt()],
   async (req: any, res: any) => {
     const err = validationResult(req);
     if (!err.isEmpty()) {
@@ -70,7 +114,7 @@ app.get(
       res.status(200).json({ msg: 'WIP api, nothing to see here' });
     } catch {
       res.status(500).json({
-        err: 'WIP api, nothing to see here',
+        err: 'Unable to retrive data from database',
       });
     }
   },
@@ -134,7 +178,7 @@ app.get('/testadmin', checkIfAdmin, (req: any, res: any) =>
   res.status(200).json({ msg: 'You are admin' }),
 );
 
-app.get('/query', checkIfAdmin, (req: any, res: any) => {
+app.get('/query', checkIfAuthenticated, (req: any, res: any) => {
   // test with start: -50h measurement: mqtt_consumer
   const start = req.query.start;
   const measurement = req.query.measurement;
