@@ -1,13 +1,12 @@
-import { InfluxDB, FluxTableMetaData, flux, fluxDuration } from '@influxdata/influxdb-client';
+import { InfluxDB, flux, fluxDuration } from '@influxdata/influxdb-client';
 
 // You can generate a Token from the "Tokens Tab" in the UI
-const token = process.env.INFLUX_TOKEN;
 const org = 'policumbent';
 const bucket = 'policumbent';
+const token = process.env.INFLUX_TOKEN;
 
 const client = new InfluxDB({ url: 'https://server.policumbent.it:9002', token });
 const queryApi = client.getQueryApi(org);
-// const queryApi = client.getQueryApi(org)
 
 export const getData = (start: string, measurement: string): Promise<any> => {
   const parsedStart = fluxDuration(start);

@@ -27,7 +27,6 @@ export const checkIfAdmin = (req: any, res: any, next: any) => {
     try {
       const { authToken } = req;
       const userInfo = await admin.auth().verifyIdToken(authToken);
-
       if (userInfo.admin === true) {
         req.authId = userInfo.uid;
         return next();

@@ -13,8 +13,8 @@ const client = mqtt.connect({
   host: 'server.policumbent.it',
   port: 8883,
   rejectUnauthorized: false,
-  username: 'stefano',
-  password: 'martafaschifo!',
+  username: process.env.MQTT_USERNAME,
+  password: process.env.MQTT_PASSWORD,
 });
 
 bikes.forEach((bike) => (bikeValues[bike] = new Sensors(bike)));
@@ -40,9 +40,6 @@ client.on('connect', () => {
 });
 
 client.on('message', (topic: string, message: Buffer) => {
-  // tslint:disable-next-line:no-console
-  console.log(topic, message.toString());
-
   const destination = getDestinationMessage(topic);
 
   if (isBike(destination)) {
@@ -52,9 +49,7 @@ client.on('message', (topic: string, message: Buffer) => {
     } else {
       bike[destination.id] = String(message);
     }
-    console.log(bikeValues);
   } else if (isWeatherStation(destination)) {
     weatherValues[destination.name]![destination.id] = Number(message);
-    console.log(weatherValues);
   }
 });
