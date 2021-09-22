@@ -9,6 +9,7 @@ import { createUser, setUserAdmin } from './auth-service';
 import { bikeValues, weatherValues } from './mqtt-service';
 
 import { getData } from './influx-test';
+import { isAdmin, protectData } from './utils';
 
 const app = express();
 const PORT = 3001;
@@ -23,7 +24,9 @@ app.use(cors()); // cors abilitati
 
 /* General APIs */
 
-/* Retrive live data for defined bike (from mqtt)
+/* Retrive live data for defined bike (from mqtt).
+ * Show all data if requests is from an admin,
+ * otherwise obscure heartrate and power
  *
  * params: @bike -> bike id
  */
@@ -36,7 +39,10 @@ app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: an
   const bike = req.params.bike;
 
   try {
-    const data = bikeValues[bike];
+    const admin = await isAdmin(req);
+    const sensorsData = bikeValues[bike];
+    const data = admin ? sensorsData : protectData(sensorsData);
+
     res.status(200).json(data);
   } catch {
     res.status(500).json({
@@ -90,6 +96,7 @@ app.get('/api/weather/last/:station', [check('station').isString()], async (req:
  */
 app.get(
   '/api/activities/last/:bike',
+  checkIfAdmin,
   [check('bike').isString(), check('n').isInt()],
   async (req: any, res: any) => {
     const err = validationResult(req);
