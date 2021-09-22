@@ -4,7 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan'; // logging middleware
 import { check, validationResult } from 'express-validator'; // validation middleware
 
-import { checkIfAuthenticated, checkIfAdmin } from './auth-middleware';
+import { checkIfAdmin } from './auth-middleware';
 import { createUser, setUserAdmin } from './auth-service';
 import { bikeValues, weatherValues } from './mqtt-service';
 
@@ -27,30 +27,26 @@ app.use(cors()); // cors abilitati
  *
  * params: @bike -> bike id
  */
-app.get(
-  '/api/activities/last/:bike',
-  checkIfAuthenticated,
-  [check('bike').isString()],
-  async (req: any, res: any) => {
-    const err = validationResult(req);
-    if (!err.isEmpty()) {
-      return res.status(422).json({ err: err.array() });
-    }
-    const bike = req.params.bike;
+app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: any, res: any) => {
+  const err = validationResult(req);
+  if (!err.isEmpty()) {
+    return res.status(422).json({ err: err.array() });
+  }
 
-    try {
-      const data = bikeValues[bike];
-      res.status(200).json(data);
-    } catch {
-      res.status(500).json({
-        err: 'Unable to retrive live data',
-      });
-    }
-  },
-);
+  const bike = req.params.bike;
+
+  try {
+    const data = bikeValues[bike];
+    res.status(200).json(data);
+  } catch {
+    res.status(500).json({
+      err: 'Unable to retrive live data',
+    });
+  }
+});
 
 /* Retrive live data from all weather stations (from mqtt) */
-app.get('/api/weather/last', checkIfAuthenticated, async (req: any, res: any) => {
+app.get('/api/weather/last', async (req: any, res: any) => {
   const err = validationResult(req);
   if (!err.isEmpty()) {
     return res.status(422).json({ err: err.array() });
@@ -70,27 +66,22 @@ app.get('/api/weather/last', checkIfAuthenticated, async (req: any, res: any) =>
  *
  * params: @station -> station id
  */
-app.get(
-  '/api/weather/last/:station',
-  checkIfAuthenticated,
-  [check('station').isString()],
-  async (req: any, res: any) => {
-    const err = validationResult(req);
-    if (!err.isEmpty()) {
-      return res.status(422).json({ err: err.array() });
-    }
-    const station = req.params.station;
+app.get('/api/weather/last/:station', [check('station').isString()], async (req: any, res: any) => {
+  const err = validationResult(req);
+  if (!err.isEmpty()) {
+    return res.status(422).json({ err: err.array() });
+  }
+  const station = req.params.station;
 
-    try {
-      const data = weatherValues[station];
-      res.status(200).json(data);
-    } catch {
-      res.status(500).json({
-        err: 'Unable to retrive live data',
-      });
-    }
-  },
-);
+  try {
+    const data = weatherValues[station];
+    res.status(200).json(data);
+  } catch {
+    res.status(500).json({
+      err: 'Unable to retrive live data',
+    });
+  }
+});
 
 /* Retrive history data for defined bike (from influxdb)
  *
@@ -99,7 +90,6 @@ app.get(
  */
 app.get(
   '/api/activities/last/:bike',
-  checkIfAuthenticated,
   [check('bike').isString(), check('n').isInt()],
   async (req: any, res: any) => {
     const err = validationResult(req);
@@ -123,7 +113,7 @@ app.get(
 /* ALICE APIs */
 
 /* Retrive current configuration */
-app.get('/api/alice/config', checkIfAuthenticated, async (_: any, res: any) => {
+app.get('/api/alice/config', async (_: any, res: any) => {
   try {
     res.status(200).json({ msg: 'WIP api, nothing to see here' });
   } catch {
@@ -134,7 +124,7 @@ app.get('/api/alice/config', checkIfAuthenticated, async (_: any, res: any) => {
 });
 
 /* Retrive comments */
-app.get('/api/alice/comments', checkIfAuthenticated, async (_: any, res: any) => {
+app.get('/api/alice/comments', async (_: any, res: any) => {
   try {
     res.status(200).json({ msg: 'WIP api, nothing to see here' });
   } catch {
@@ -145,7 +135,7 @@ app.get('/api/alice/comments', checkIfAuthenticated, async (_: any, res: any) =>
 });
 
 /* Retrive notifications */
-app.get('/api/alice/notification', checkIfAuthenticated, async (_: any, res: any) => {
+app.get('/api/alice/notification', async (_: any, res: any) => {
   try {
     res.status(200).json({ msg: 'WIP api, nothing to see here' });
   } catch {
@@ -168,17 +158,13 @@ app.post('/api/auth/removeadmin', checkIfAdmin, (req: any, res: any) =>
   setUserAdmin(req, res, false),
 );
 
-/* TEST API */
-
-app.get('/test', checkIfAuthenticated, (req: any, res: any) =>
-  res.status(200).json({ msg: 'You are authenticated' }),
-);
-
 app.get('/testadmin', checkIfAdmin, (req: any, res: any) =>
   res.status(200).json({ msg: 'You are admin' }),
 );
 
-app.get('/query', checkIfAuthenticated, (req: any, res: any) => {
+/* TEST API */
+
+app.get('/query', checkIfAdmin, (req: any, res: any) => {
   // test with start: -50h measurement: mqtt_consumer
   const start = req.query.start;
   const measurement = req.query.measurement;
