@@ -15,14 +15,13 @@ export const createUser = async (req: any, res: any) => {
 export const setUserAdmin = async (req: any, res: any, value: boolean) => {
   const { email } = req.body;
 
-  if (!email || email.length < 1)
-    return res.status(400).json({ msg: 'Email required' })
+  if (!email || email.length < 1) return res.status(400).json({ msg: 'Email required' });
 
   admin
     .auth()
     .getUserByEmail(email)
     .catch((err) => {
-        res.status(400).json({ msg: 'User not found' })
+      res.status(400).json({ msg: 'User not found' });
     })
     .then((user: any) => {
       return admin.auth().setCustomUserClaims(user.uid, {
@@ -30,9 +29,11 @@ export const setUserAdmin = async (req: any, res: any, value: boolean) => {
       });
     })
     .then(() => {
-        res.status(200).json({ msg: value ? `${email} is now admin` : `${email} removed from admin` })
+      res
+        .status(200)
+        .json({ msg: value ? `${email} is now admin` : `${email} removed from admin` });
     })
     .catch((err) => {
-        res.status(500).json({ msg: 'Server error' })
+      res.status(500).json({ msg: 'Server error' });
     });
 };
