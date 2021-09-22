@@ -7,6 +7,7 @@ import { check, validationResult } from 'express-validator'; // validation middl
 import { checkIfAdmin } from './auth-middleware';
 import { createUser, setUserAdmin } from './auth-service';
 import { bikeValues, weatherValues } from './mqtt-service';
+import { getComments, setComments, getConfig, setConfig } from './firebase-db';
 
 import { getData } from './influx-test';
 import { isAdmin, protectData } from './utils';
@@ -122,10 +123,12 @@ app.get(
 /* Retrive current configuration */
 app.get('/api/alice/config', async (_: any, res: any) => {
   try {
-    res.status(200).json({ msg: 'WIP api, nothing to see here' });
+    const config = await getConfig();
+
+    res.status(200).json(config);
   } catch {
     res.status(500).json({
-      err: 'WIP api, nothing to see here',
+      err: 'Unable to retrive configuration',
     });
   }
 });
@@ -133,10 +136,12 @@ app.get('/api/alice/config', async (_: any, res: any) => {
 /* Retrive comments */
 app.get('/api/alice/comments', async (_: any, res: any) => {
   try {
-    res.status(200).json({ msg: 'WIP api, nothing to see here' });
+    const comments = await getComments();
+
+    res.status(200).json(comments);
   } catch {
     res.status(500).json({
-      err: 'WIP api, nothing to see here',
+      err: 'Unable to retrive comments',
     });
   }
 });
