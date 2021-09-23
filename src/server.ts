@@ -89,11 +89,11 @@ app.get('/api/weather/last/:station', [check('station').isString()], (req: any, 
 /* Retrive history data for defined bike (from influxdb)
  *
  * params: @bike -> bike id
- * query:  @n -> data length
+ *         @n -> data length
  */
 app.get(
-  '/api/activities/last/:bike',
-  checkIfAdmin,
+  '/api/activities/last/:bike/:n',
+  // checkIfAdmin,
   [check('bike').isString(), check('n').isInt()],
   async (req: any, res: any) => {
     const err = validationResult(req);
@@ -102,10 +102,15 @@ app.get(
     }
 
     const bike = req.params.bike;
-    const len = req.query.n;
+    const len = req.params.n;
 
     try {
-      res.status(200).json({ msg: 'WIP api, nothing to see here' });
+      const placeholder = {
+        chart: [],
+        miniChart: [],
+      };
+
+      res.status(200).json(placeholder);
     } catch {
       res.status(500).json({
         err: 'Unable to retrive data from database',
@@ -195,8 +200,7 @@ app.put(
       const config = await Config.update(values);
 
       res.status(200).json(config);
-    } catch (e) {
-      console.log(e);
+    } catch {
       res.status(500).json({
         err: 'Unable to update configuration',
       });
@@ -208,7 +212,6 @@ app.put(
 app.get('/api/alice/comments', async (_: any, res: any) => {
   try {
     const comments = await Comments.get();
-    console.log(comments);
 
     res.status(200).json(comments);
   } catch {
@@ -335,12 +338,13 @@ app.delete('/api/alice/comments', checkIfAdmin, async (_: any, res: any) => {
 });
 
 /* Retrive notifications */
-app.get('/api/alice/notification', async (_: any, res: any) => {
+app.get('/api/alice/notifications', async (_: any, res: any) => {
   try {
-    res.status(200).json({ msg: 'WIP api, nothing to see here' });
+    const placeholder = [{ id: 1, message: 'notifica di prova', public: true }];
+    res.status(200).json(placeholder);
   } catch {
     res.status(500).json({
-      err: 'WIP api, nothing to see here',
+      err: 'Unable to retrive notifications',
     });
   }
 });

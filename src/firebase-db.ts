@@ -50,7 +50,7 @@ interface Comment {
 }
 
 export class Comments extends Array<Comment> {
-  constructor(data: Array<any>) {
+  constructor(data: any[]) {
     super(...data);
   }
 
