@@ -225,7 +225,13 @@ app.get('/api/alice/comments', async (_: any, res: any) => {
 app.post(
   '/api/alice/comments',
   checkIfAdmin,
-  [check('comments').isArray(), check('comments.*').isString()],
+  [
+    check('comments').isArray(),
+    check('comments.*.id').isInt(),
+    check('comments.*.message').isString(),
+    check('comments.*.timestamp').isISO8601(),
+    check('comments.*.username').isString(),
+  ],
   async (req: any, res: any) => {
     const err = validationResult(req);
     if (!err.isEmpty()) {
@@ -250,33 +256,50 @@ app.post(
  *
  * body: @comments -> new comments to add
  */
-app.put('/api/alice/comments', checkIfAdmin, async (req: any, res: any) => {
-  const err = validationResult(req);
-  if (!err.isEmpty()) {
-    return res.status(422).json({ err: err.array() });
-  }
+app.put(
+  '/api/alice/comments',
+  checkIfAdmin,
+  check('comments').isArray(),
+  check('comments.*.id').isInt(),
+  check('comments.*.message').isString(),
+  check('comments.*.timestamp').isISO8601(),
+  check('comments.*.username').isString(),
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
 
-  const newComments = new Comments(req.body.comments);
+    const newComments = new Comments(req.body.comments);
 
-  try {
-    const comments = await Comments.update(newComments);
+    try {
+      const comments = await Comments.update(newComments);
 
-    res.status(200).json(comments);
-  } catch {
-    res.status(500).json({
-      err: 'Unable to add new comments',
-    });
-  }
-});
+      res.status(200).json(comments);
+    } catch {
+      res.status(500).json({
+        err: 'Unable to add new comments',
+      });
+    }
+  },
+);
 
 /* Update or add a single comment in defined position
  *
  * params: @pos -> comment position into array
+ * body: @comment -> comment to add
  */
 app.put(
   '/api/alice/comments/:pos',
   checkIfAdmin,
-  [check('pos').isInt({ min: 0 }), check('comment').isString()],
+  [
+    check('pos').isInt({ min: 0 }),
+    check('comment').isObject(),
+    check('comment.id').isInt(),
+    check('comment.message').isString(),
+    check('comment.timestamp').isISO8601(),
+    check('comment.username').isString(),
+  ],
   async (req: any, res: any) => {
     const err = validationResult(req);
     if (!err.isEmpty()) {

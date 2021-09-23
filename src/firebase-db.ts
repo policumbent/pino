@@ -42,8 +42,15 @@ export class Config {
   }
 }
 
-export class Comments extends Array<string> {
-  constructor(data: string[]) {
+interface Comment {
+  id: number;
+  message: string;
+  timestamp: string;
+  username: string;
+}
+
+export class Comments extends Array<Comment> {
+  constructor(data: Array<any>) {
     super(...data);
   }
 
@@ -67,7 +74,7 @@ export class Comments extends Array<string> {
     return await this.set(comments);
   }
 
-  static async updateSingle(value: string, position: number) {
+  static async updateSingle(value: Comment, position: number) {
     const comments = await this.get();
 
     if (position < comments.length) {
