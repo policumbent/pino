@@ -7,7 +7,15 @@ import { check, validationResult } from 'express-validator'; // validation middl
 import { checkIfAdmin } from './auth-middleware';
 import { createUser, setUserAdmin } from './auth-service';
 import { bikeValues, weatherValues } from './mqtt-service';
-import { getComments, setComments, getConfig, setConfig } from './firebase-db';
+import {
+  getComments,
+  setComments,
+  getConfig,
+  setConfig,
+  updateConfig,
+  updateComments,
+  updateSingleComment,
+} from './firebase-db';
 
 import { getData } from './influx-test';
 import { isAdmin, protectData } from './utils';
@@ -53,14 +61,10 @@ app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: an
 });
 
 /* Retrive live data from all weather stations (from mqtt) */
-app.get('/api/weather/last', async (req: any, res: any) => {
-  const err = validationResult(req);
-  if (!err.isEmpty()) {
-    return res.status(422).json({ err: err.array() });
-  }
+app.get('/api/weather/last', (_: any, res: any) => {
+  const data = weatherValues;
 
   try {
-    const data = weatherValues;
     res.status(200).json(data);
   } catch {
     res.status(500).json({
@@ -73,7 +77,7 @@ app.get('/api/weather/last', async (req: any, res: any) => {
  *
  * params: @station -> station id
  */
-app.get('/api/weather/last/:station', [check('station').isString()], async (req: any, res: any) => {
+app.get('/api/weather/last/:station', [check('station').isString()], (req: any, res: any) => {
   const err = validationResult(req);
   if (!err.isEmpty()) {
     return res.status(422).json({ err: err.array() });
@@ -133,6 +137,81 @@ app.get('/api/alice/config', async (_: any, res: any) => {
   }
 });
 
+/* Add new configuration
+ *
+ * body: @bikeName  -> bike to monitor
+ *       @date      -> date countdonw for the run
+ *       @startTime -> timer countdown for the run
+ *       @trackName -> code for GPS configuration
+ */
+app.post(
+  '/api/alice/config',
+  checkIfAdmin,
+  [
+    check('bikeName').isString(),
+    check('date').isDate({ format: 'YYYY-MM-DD' }),
+    check('startTime').matches(/^([0-1]?[0-9]|[2][0-3]):([0-5][0-9])(:[0-5][0-9])$/),
+    check('trackName').isString(),
+  ],
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
+
+    const config = req.body;
+
+    try {
+      await setConfig(config);
+
+      res.status(200).json(config);
+    } catch {
+      res.status(500).json({
+        err: 'Unable to add new configuration',
+      });
+    }
+  },
+);
+
+/* Update configuration (one or more fields)
+ *
+ * body: @bikeName  -> bike to monitor
+ *       @date      -> date countdonw for the run
+ *       @startTime -> timer countdown for the run
+ *       @trackName -> code for GPS configuration
+ */
+app.put(
+  '/api/alice/config',
+  checkIfAdmin,
+  [
+    check('bikeName').isString().optional(true),
+    check('date').isDate({ format: 'YYYY-MM-DD' }).optional(true),
+    check('startTime')
+      .matches(/^([0-1]?[0-9]|[2][0-3]):([0-5][0-9])(:[0-5][0-9])$/)
+      .optional(true),
+    check('trackName').isString().optional(true),
+  ],
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
+
+    const values = req.body;
+
+    try {
+      const config = await updateConfig(values);
+
+      res.status(200).json(config);
+    } catch (e) {
+      console.log(e);
+      res.status(500).json({
+        err: 'Unable to update configuration',
+      });
+    }
+  },
+);
+
 /* Retrive comments */
 app.get('/api/alice/comments', async (_: any, res: any) => {
   try {
@@ -142,6 +221,99 @@ app.get('/api/alice/comments', async (_: any, res: any) => {
   } catch {
     res.status(500).json({
       err: 'Unable to retrive comments',
+    });
+  }
+});
+
+/* Replace all comments
+ *
+ * body: @comments -> new comments
+ */
+app.post(
+  '/api/alice/comments',
+  checkIfAdmin,
+  [check('comments').isArray(), check('comments.*').isString()],
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
+
+    const comments = req.body.comments;
+
+    try {
+      await setComments(comments);
+
+      res.status(200).json(comments);
+    } catch {
+      res.status(500).json({
+        err: 'Unable to replace all comments',
+      });
+    }
+  },
+);
+
+/* Add new comments
+ *
+ * body: @comments -> new comments to add
+ */
+app.put('/api/alice/comments', checkIfAdmin, async (req: any, res: any) => {
+  const err = validationResult(req);
+  if (!err.isEmpty()) {
+    return res.status(422).json({ err: err.array() });
+  }
+
+  const newComments = req.body.comments;
+
+  try {
+    const comments = await updateComments(newComments);
+
+    res.status(200).json(comments);
+  } catch {
+    res.status(500).json({
+      err: 'Unable to add new comments',
+    });
+  }
+});
+
+/* Update or add a single comment in defined position
+ *
+ * params: @pos -> comment position into array
+ */
+app.put(
+  '/api/alice/comments/:pos',
+  checkIfAdmin,
+  [check('pos').isInt({ min: 0 }), check('comment').isString()],
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
+
+    const pos = req.params.pos;
+    const newComment = req.body.comment;
+
+    try {
+      const { comments, position } = await updateSingleComment(newComment, pos - 1);
+
+      res.status(200).json(`Updated comment in position ${position}. Comments: ${comments}`);
+    } catch {
+      res.status(500).json({
+        err: `Unable to update comment in position ${pos}`,
+      });
+    }
+  },
+);
+
+/* Delete all comments */
+app.delete('/api/alice/comments', checkIfAdmin, async (_: any, res: any) => {
+  try {
+    await setComments([]);
+
+    res.status(200).json('Deleted all comments');
+  } catch {
+    res.status(500).json({
+      err: 'Unable to delete comments',
     });
   }
 });
@@ -170,7 +342,7 @@ app.post('/api/auth/removeadmin', checkIfAdmin, (req: any, res: any) =>
   setUserAdmin(req, res, false),
 );
 
-app.get('/testadmin', checkIfAdmin, (req: any, res: any) =>
+app.get('/testadmin', checkIfAdmin, (_: any, res: any) =>
   res.status(200).json({ msg: 'You are admin' }),
 );
 
