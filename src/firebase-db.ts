@@ -2,80 +2,83 @@ import admin from './firebase-service';
 
 const db = admin.database();
 
-interface Config {
+export class Config {
   [key: string]: string;
 
   bikeName: string;
   date: string;
   startTime: string;
   trackName: string;
-}
 
-type Comments = string[];
-
-export function newConfig(data: any): Config {
-  const config = {
-    bikeName: data.bikeName || null,
-    date: data.date || null,
-    startTime: data.startTime || null,
-    trackName: data.trackName || null,
-  };
-
-  return config;
-}
-
-export async function getConfig() {
-  const data = await db.ref('alice/config').get();
-  const config = data.val() as Config;
-
-  return config;
-}
-
-export async function setConfig(value: Config) {
-  await db.ref('alice/config').set(value);
-}
-
-export async function updateConfig(value: Config) {
-  const config = await getConfig();
-  for (const key in config) {
-    const old = config[key];
-    config[key] = value[key] || old;
+  constructor(data: any) {
+    this.bikeName = data.bikeName || null;
+    this.date = data.date || null;
+    this.startTime = data.startTime || null;
+    this.trackName = data.trackName || null;
   }
 
-  await setConfig(config);
-  return config;
-}
+  static async get() {
+    const data = await db.ref('alice/config').get();
+    const config = new Config(data.val());
 
-export async function getComments() {
-  const data = await db.ref('alice/comments').get();
-  const comments = data.val() as Comments;
-
-  return comments;
-}
-
-export async function setComments(value: Comments) {
-  await db.ref('alice/comments').set(value);
-}
-
-export async function updateComments(value: Comments) {
-  const oldComments = await getComments();
-  const comments = oldComments?.concat(value) || [];
-
-  await setComments(comments);
-  return comments;
-}
-
-export async function updateSingleComment(value: string, position: number) {
-  const comments = await getComments();
-
-  if (position < comments.length) {
-    comments[position] = value;
-  } else {
-    position = comments.length;
-    comments[position] = value;
+    return config;
   }
-  await setComments(comments);
-  return { comments, position };
+
+  static async set(value: Config) {
+    await db.ref('alice/config').set(value);
+
+    return value;
+  }
+
+  static async update(value: Config) {
+    const config = await this.get();
+
+    for (const key in config) {
+      const old = config[key];
+      value[key] = value[key] || old;
+    }
+
+    return await this.set(value);
+  }
+}
+
+export class Comments extends Array<string> {
+  constructor(data: string[]) {
+    super(...data);
+  }
+
+  static async get() {
+    const data = await db.ref('alice/comments').get();
+    const comments = new Comments(data.val() || []);
+
+    return comments;
+  }
+
+  static async set(value: Comments | null) {
+    await db.ref('alice/comments').set(value);
+
+    return value;
+  }
+
+  static async update(value: Comments) {
+    const comments = await this.get();
+    comments.push(...value);
+
+    return await this.set(comments);
+  }
+
+  static async updateSingle(value: string, position: number) {
+    const comments = await this.get();
+
+    if (position < comments.length) {
+      comments[position] = value;
+    } else {
+      position = comments.length;
+      comments[position] = value;
+    }
+
+    return await this.set(comments);
+  }
 }
 
 export default db;

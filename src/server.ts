@@ -7,15 +7,7 @@ import { check, validationResult } from 'express-validator'; // validation middl
 import { checkIfAdmin } from './auth-middleware';
 import { createUser, setUserAdmin } from './auth-service';
 import { bikeValues, weatherValues } from './mqtt-service';
-import {
-  getComments,
-  setComments,
-  getConfig,
-  setConfig,
-  updateConfig,
-  updateComments,
-  updateSingleComment,
-} from './firebase-db';
+import { Config, Comments } from './firebase-db';
 
 import { getData } from './influx-test';
 import { isAdmin, protectData } from './utils';
@@ -127,7 +119,7 @@ app.get(
 /* Retrive current configuration */
 app.get('/api/alice/config', async (_: any, res: any) => {
   try {
-    const config = await getConfig();
+    const config = await Config.get();
 
     res.status(200).json(config);
   } catch {
@@ -162,7 +154,7 @@ app.post(
     const config = req.body;
 
     try {
-      await setConfig(config);
+      await Config.set(config);
 
       res.status(200).json(config);
     } catch {
@@ -197,10 +189,10 @@ app.put(
       return res.status(422).json({ err: err.array() });
     }
 
-    const values = req.body;
+    const values = new Config(req.body);
 
     try {
-      const config = await updateConfig(values);
+      const config = await Config.update(values);
 
       res.status(200).json(config);
     } catch (e) {
@@ -215,7 +207,8 @@ app.put(
 /* Retrive comments */
 app.get('/api/alice/comments', async (_: any, res: any) => {
   try {
-    const comments = await getComments();
+    const comments = await Comments.get();
+    console.log(comments);
 
     res.status(200).json(comments);
   } catch {
@@ -239,10 +232,10 @@ app.post(
       return res.status(422).json({ err: err.array() });
     }
 
-    const comments = req.body.comments;
+    const comments = new Comments(req.body.comments);
 
     try {
-      await setComments(comments);
+      await Comments.set(comments);
 
       res.status(200).json(comments);
     } catch {
@@ -263,10 +256,10 @@ app.put('/api/alice/comments', checkIfAdmin, async (req: any, res: any) => {
     return res.status(422).json({ err: err.array() });
   }
 
-  const newComments = req.body.comments;
+  const newComments = new Comments(req.body.comments);
 
   try {
-    const comments = await updateComments(newComments);
+    const comments = await Comments.update(newComments);
 
     res.status(200).json(comments);
   } catch {
@@ -294,9 +287,9 @@ app.put(
     const newComment = req.body.comment;
 
     try {
-      const { comments, position } = await updateSingleComment(newComment, pos - 1);
+      const comments = await Comments.updateSingle(newComment, pos - 1);
 
-      res.status(200).json(`Updated comment in position ${position}. Comments: ${comments}`);
+      res.status(200).json(comments);
     } catch {
       res.status(500).json({
         err: `Unable to update comment in position ${pos}`,
@@ -308,7 +301,7 @@ app.put(
 /* Delete all comments */
 app.delete('/api/alice/comments', checkIfAdmin, async (_: any, res: any) => {
   try {
-    await setComments([]);
+    await Comments.set(null);
 
     res.status(200).json('Deleted all comments');
   } catch {
