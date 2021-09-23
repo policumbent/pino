@@ -33,7 +33,7 @@ export class Config {
   static async update(value: Config) {
     const config = await this.get();
 
-    for (const key in config) {
+    for (const key of Object.keys(config)) {
       const old = config[key];
       value[key] = value[key] || old;
     }
