@@ -21,6 +21,7 @@ bikes.forEach((bike) => (bikeValues[bike] = new Sensors(bike)));
 ws.forEach((w) => (weatherValues[w] = new WeatherData()));
 
 client.on('connect', () => {
+
   bikes.forEach((bike) =>
     client.subscribe(
       `bikes/${bike}/sensors/#`,
@@ -41,12 +42,12 @@ client.on('connect', () => {
 
 client.on('message', (topic: string, message: Buffer) => {
   const destination = getDestinationMessage(topic);
-
+  console.log(topic, message);
   if (isBike(destination)) {
     const bike = bikeValues[destination.name]!;
     if (typeof bike[destination.id] === 'number') {
       bike[destination.id] = Number(message);
-    } else {
+    } else {console.log(String(message))
       bike[destination.id] = String(message);
     }
   } else if (isWeatherStation(destination)) {

@@ -42,7 +42,8 @@ app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: an
   try {
     const admin = await isAdmin(req);
     const sensorsData = bikeValues[bike];
-    const data = admin ? sensorsData : protectData(sensorsData);
+    const data = sensorsData;
+    //const data = admin ? sensorsData : protectData(sensorsData);
 
     res.status(200).json(data);
   } catch {

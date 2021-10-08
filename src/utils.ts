@@ -11,11 +11,12 @@ interface Destination {
   id: string;
   type: string;
   name: string;
+  datatype: string;
 }
 
 export function getDestinationMessage(topic: string): Destination {
   const elements = topic.split('/');
-  return { id: elements[2], type: elements[0], name: elements[1] };
+  return { id: elements[3], type: elements[0], name: elements[1], datatype: elements[2] };
 }
 
 export function isBike(data: Destination): boolean {
