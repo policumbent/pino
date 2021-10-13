@@ -43,6 +43,9 @@ app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: an
     const admin = await isAdmin(req);
     const sensorsData = bikeValues[bike];
     const data = sensorsData;
+    if(data !== undefined){
+      data.connected = (Date.now() - data.last < 5000);
+    }
     //const data = admin ? sensorsData : protectData(sensorsData);
 
     res.status(200).json(data);
