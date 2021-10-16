@@ -11,6 +11,7 @@ import { Config, Comments } from './firebase-db';
 
 import { getData } from './influx-test';
 import { isAdmin, protectData } from './utils';
+import {getTokens} from './notifications-service'
 
 const app = express();
 const PORT = 3001;
@@ -352,6 +353,55 @@ app.get('/api/alice/notifications', async (_: any, res: any) => {
     });
   }
 });
+
+/* Retrive notifications */
+app.get('/api/notifications/tokens', async (_: any, res: any) => {
+  try {
+    
+    const tokens = await getTokens('ui')
+    res.status(200).json(tokens);
+  } catch(e) {
+    console.log(e);
+    res.status(500).json({
+      err: 'Unable to retrive notifications. ' + e,
+    });
+  }
+});
+
+
+/* Send push notification
+ *
+ * body: @title  -> notification title
+ *       @messageIt -> italian message
+ *       @messageEn -> english message
+ */
+app.post(
+  '/api/alice/push_notification',
+  checkIfAdmin,
+  [
+    check('title').isString(),
+    check('messageIt').isString(),
+    check('messageEn').isString(),
+  ],
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
+
+    const config = req.body;
+
+    try {
+      await Config.set(config);
+
+      res.status(200).json(config);
+    } catch {
+      res.status(500).json({
+        err: 'Unable to add new configuration',
+      });
+    }
+  },
+);
 
 /* Users APIs */
 
