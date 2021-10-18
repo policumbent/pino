@@ -8,10 +8,10 @@
     "trailing-comma": [
       false
     ],
+    "max-classes-per-file": false,
     "no-console": {
       "severity": "off"
-   }
+    }
   },
   "rulesDirectory": []
-
 }

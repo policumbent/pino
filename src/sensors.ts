@@ -1,5 +1,5 @@
 export class Sensors {
-  [key: string]: string | number;
+  [key: string]: string | number | boolean;
 
   accX: number;
   accXMax: number;
@@ -26,15 +26,17 @@ export class Sensors {
   time: number;
   timestamp: 0;
   deviceTypeInt: number;
+  last: number;
+  connected: boolean;
 
-  constructor(bikename: string) {
+  constructor(bikeName: string) {
     this.accX = 0;
     this.accXMax = 0;
     this.accY = 0;
     this.accYMax = 0;
     this.accZ = 0;
     this.accZMax = 0;
-    this.bikeName = bikename;
+    this.bikeName = bikeName;
     this.cadence = 0;
     this.cpuTemp = 0;
     this.distance = 0;
@@ -51,5 +53,8 @@ export class Sensors {
     this.time = 0;
     this.timestamp = 0;
     this.deviceTypeInt = 0;
+    this.last = 0;
+    this.connected = false;
   }
+
 }
