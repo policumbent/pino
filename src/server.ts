@@ -47,7 +47,7 @@ app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: an
     if(data !== undefined){
       data.connected = (Date.now() - data.last < 5000);
     }
-    //const data = admin ? sensorsData : protectData(sensorsData);
+    // const data = admin ? sensorsData : protectData(sensorsData);
 
     res.status(200).json(data);
   } catch {
@@ -387,12 +387,12 @@ app.post(
         sendNotifications(tokens.tokensIt, notification.titleIt, notification.messageIt)
       if (tokens.tokensEn.length > 0)
         sendNotifications(tokens.tokensEn, notification.titleEn, notification.messageEn)
-      
-      if (tokens.tokensIt.length == 0 && tokens.tokensEn.length == 0)
+
+      if (tokens.tokensIt.length === 0 && tokens.tokensEn.length === 0)
         res.status(500).json({
           err: 'No notifications tokens found',
         });
-      else 
+      else
         res.status(200).json('Notifications sent');
     } catch {
       res.status(500).json({
