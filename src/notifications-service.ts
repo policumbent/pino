@@ -1,16 +1,22 @@
-import e from 'express';
 import admin from './firebase-service';
 
 export async function getTokens(appName: string){
     const db = admin.database();
-    const tokens = db.ref(`notifications/test`).get();
-    const tokensIt = [];
-    const tokensEn = [];
-    console.log(tokens);
-    return(tokens)
+
+    const tokens = await (await db.ref(`notifications/${appName}`).get()).val();
+    const tokensIt: string [] = [];
+    const tokensEn: string [] = [];
+
+    for (const token of Object.keys(tokens))
+      tokens[token].lang == 'it' ? tokensIt.push(token) : tokensEn.push(token)
+    
+    return({
+      tokensIt: tokensIt,
+      tokensEn: tokensEn
+    })
 };
 
-function sendNotifications(tokens: string[], title: string, body: string): void {
+export async function sendNotifications(tokens: string[], title: string, body: string): Promise<void> {
     const payload = {
         notification: {
             title,
@@ -18,10 +24,10 @@ function sendNotifications(tokens: string[], title: string, body: string): void 
         }
     }
     const options = {
-        priority: "medium",
+        priority: 'high',
         timeToLive: 60 * 60 * 3
       };
-    admin.messaging().sendToDevice(tokens, payload, options)
+    return admin.messaging().sendToDevice(tokens, payload, options)
       .then(function(response) {
         console.log("Successfully sent message:", response);
       })
