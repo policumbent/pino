@@ -11,6 +11,7 @@ import { Config, Comments } from './firebase-db';
 
 import { getData } from './influx-test';
 import { isAdmin, protectData } from './utils';
+import {getTokens, sendNotifications} from './notifications-service'
 
 const app = express();
 const PORT = 3001;
@@ -43,6 +44,9 @@ app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: an
     const admin = await isAdmin(req);
     const sensorsData = bikeValues[bike];
     const data = sensorsData;
+    if(data !== undefined){
+      data.connected = (Date.now() - data.last < 5000);
+    }
     //const data = admin ? sensorsData : protectData(sensorsData);
 
     res.status(200).json(data);
@@ -158,6 +162,7 @@ app.post(
     }
 
     const config = req.body;
+    console.log(config)
 
     try {
       await Config.set(config);
@@ -349,6 +354,53 @@ app.get('/api/alice/notifications', async (_: any, res: any) => {
     });
   }
 });
+
+
+/* Send push notification
+ *
+ * body: @titleIt  -> notification title IT
+ *       @titleEn  -> notification title EN
+ *       @messageIt -> italian message
+ *       @messageEn -> english message
+ */
+app.post(
+  '/api/alice/push_notification',
+  checkIfAdmin,
+  [
+    check('titleIt').isString(),
+    check('titleEn').isString(),
+    check('messageIt').isString(),
+    check('messageEn').isString(),
+  ],
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
+
+    const notification = req.body;
+
+    try {
+      const tokens = await getTokens('test')
+
+      if (tokens.tokensIt.length > 0)
+        sendNotifications(tokens.tokensIt, notification.titleIt, notification.messageIt)
+      if (tokens.tokensEn.length > 0)
+        sendNotifications(tokens.tokensEn, notification.titleEn, notification.messageEn)
+      
+      if (tokens.tokensIt.length == 0 && tokens.tokensEn.length == 0)
+        res.status(500).json({
+          err: 'No notifications tokens found',
+        });
+      else 
+        res.status(200).json('Notifications sent');
+    } catch {
+      res.status(500).json({
+        err: 'Unable to send notifications',
+      });
+    }
+  },
+);
 
 /* Users APIs */
 

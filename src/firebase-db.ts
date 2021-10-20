@@ -5,10 +5,10 @@ const db = admin.database();
 export class Config {
   [key: string]: string;
 
-  bikeName: string;
-  date: string;
-  startTime: string;
-  trackName: string;
+  bikeName: string; // taurusx, taurus, phoenix
+  date: string; // YYYY-MM-DD
+  startTime: string; // hh:mm:ss
+  trackName: string; // bm, balocco or orbassano
 
   constructor(data: any) {
     this.bikeName = data.bikeName || null;

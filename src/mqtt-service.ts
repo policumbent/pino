@@ -19,9 +19,10 @@ const client = mqtt.connect({
 
 bikes.forEach((bike) => (bikeValues[bike] = new Sensors(bike)));
 ws.forEach((w) => (weatherValues[w] = new WeatherData()));
+console.log('Connection to MQTT...');
 
 client.on('connect', () => {
-
+  console.log('Connected');
   bikes.forEach((bike) =>
     client.subscribe(
       `bikes/${bike}/sensors/#`,
@@ -42,6 +43,7 @@ client.on('connect', () => {
 
 client.on('message', (topic: string, message: Buffer) => {
   const destination = getDestinationMessage(topic);
+  console.log(destination);
   console.log(topic, message);
   if (isBike(destination)) {
     const bike = bikeValues[destination.name]!;
@@ -50,6 +52,8 @@ client.on('message', (topic: string, message: Buffer) => {
     } else {console.log(String(message))
       bike[destination.id] = String(message);
     }
+    bike['last'] = Date.now();
+    console.log(bike);
   } else if (isWeatherStation(destination)) {
     weatherValues[destination.name]![destination.id] = Number(message);
   }
