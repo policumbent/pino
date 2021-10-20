@@ -52,7 +52,7 @@ client.on('message', (topic: string, message: Buffer) => {
     } else {console.log(String(message))
       bike[destination.id] = String(message);
     }
-    bike['last'] = Date.now();
+    bike.last = Date.now();
     console.log(bike);
   } else if (isWeatherStation(destination)) {
     weatherValues[destination.name]![destination.id] = Number(message);
