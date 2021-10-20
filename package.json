@@ -1,6 +1,6 @@
 {
   "name": "pino",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Pino il serverino",
   "repository": {
     "type": "git",
@@ -8,7 +8,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "AGPL",
+  "license": "AGPL-3.0",
   "homepage": "https://github.com/policumbent/pino#readme",
   "main": "dist/server.js",
   "scripts": {

@@ -26,7 +26,8 @@ app.use(cors()); // cors abilitati
 
 /* General APIs */
 
-/* Retrive live data for defined bike (from mqtt).
+/**
+ * Retrive live data for defined bike (from mqtt).
  * Show all data if requests is from an admin,
  * otherwise obscure heartrate and power
  *
@@ -69,7 +70,8 @@ app.get('/api/weather/last', (_: any, res: any) => {
   }
 });
 
-/* Retrive live data for defined weather station (from mqtt)
+/**
+ * Retrive live data for defined weather station (from mqtt)
  *
  * params: @station -> station id
  */
@@ -90,7 +92,8 @@ app.get('/api/weather/last/:station', [check('station').isString()], (req: any, 
   }
 });
 
-/* Retrive history data for defined bike (from influxdb)
+/**
+ * Retrive history data for defined bike (from influxdb)
  *
  * params: @bike -> bike id
  *         @n -> data length
@@ -138,7 +141,7 @@ app.get('/api/alice/config', async (_: any, res: any) => {
   }
 });
 
-/* Add new configuration
+/** Add new configuration
  *
  * body: @bikeName  -> bike to monitor
  *       @date      -> date countdonw for the run
@@ -175,7 +178,7 @@ app.post(
   },
 );
 
-/* Update configuration (one or more fields)
+/** Update configuration (one or more fields)
  *
  * body: @bikeName  -> bike to monitor
  *       @date      -> date countdonw for the run
@@ -226,7 +229,8 @@ app.get('/api/alice/comments', async (_: any, res: any) => {
   }
 });
 
-/* Replace all comments
+/**
+ * Replace all comments
  *
  * body: @comments -> new comments
  */
@@ -260,7 +264,8 @@ app.post(
   },
 );
 
-/* Add new comments
+/**
+ * Add new comments
  *
  * body: @comments -> new comments to add
  */
@@ -292,7 +297,8 @@ app.put(
   },
 );
 
-/* Update or add a single comment in defined position
+/**
+ * Update or add a single comment in defined position
  *
  * params: @pos -> comment position into array
  * body: @comment -> comment to add
@@ -354,7 +360,8 @@ app.get('/api/alice/notifications', async (_: any, res: any) => {
   }
 });
 
-/* Send push notification
+/**
+ * Send push notification
  *
  * body: @titleIt  -> notification title IT
  *       @titleEn  -> notification title EN
