@@ -398,7 +398,7 @@ app.post(
     const notification = req.body;
 
     try {
-      const tokens = await getTokens('test');
+      const tokens = await getTokens('alice/tokens');
 
       if (tokens.tokensIt.length > 0)
         sendNotifications(tokens.tokensIt, notification.titleIt, notification.messageIt);

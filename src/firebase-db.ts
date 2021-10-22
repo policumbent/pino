@@ -58,7 +58,7 @@ export class Comments extends Array<Comment> {
   static commentId: number | null = null;
 
   constructor(data: any[]) {
-    const ts = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    const ts = dayjs().add(2, 'hour').format('YYYY-MM-DD HH:mm:ss');
     const tsData = data.map((d) => ({ timestamp: d.timestamp || ts, ...d }));
 
     super(...tsData);
