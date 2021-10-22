@@ -7,7 +7,7 @@ import { check, validationResult } from 'express-validator'; // validation middl
 import { checkIfAdmin } from './auth-middleware';
 import { createUser, setUserAdmin } from './auth-service';
 import { bikeValues, weatherValues } from './mqtt-service';
-import { Config, Comments } from './firebase-db';
+import { Config, Comments, Token } from './firebase-db';
 
 import { getData } from './influx-test';
 import { isAdmin, protectData } from './utils';
@@ -216,6 +216,24 @@ app.put(
   },
 );
 
+app.put('/api/alice/tokens', [check('token').isString()], async (req: any, res: any) => {
+  const err = validationResult(req);
+  if (!err.isEmpty()) {
+    return res.status(422).json({ err: err.array() });
+  }
+
+  const token = req.body.token;
+  try {
+    Token.push(token);
+
+    res.status(200).end();
+  } catch {
+    res.status(500).json({
+      err: 'Unable to put token',
+    });
+  }
+});
+
 /* Retrive comments */
 app.get('/api/alice/comments', async (_: any, res: any) => {
   try {
@@ -239,9 +257,7 @@ app.post(
   checkIfAdmin,
   [
     check('comments').isArray(),
-    check('comments.*.id').isInt(),
     check('comments.*.message').isString(),
-    check('comments.*.timestamp').isISO8601(),
     check('comments.*.username').isString(),
   ],
   async (req: any, res: any) => {
@@ -273,9 +289,7 @@ app.put(
   '/api/alice/comments',
   checkIfAdmin,
   check('comments').isArray(),
-  check('comments.*.id').isInt(),
   check('comments.*.message').isString(),
-  check('comments.*.timestamp').isISO8601(),
   check('comments.*.username').isString(),
   async (req: any, res: any) => {
     const err = validationResult(req);
@@ -309,9 +323,7 @@ app.put(
   [
     check('pos').isInt({ min: 0 }),
     check('comment').isObject(),
-    check('comment.id').isInt(),
     check('comment.message').isString(),
-    check('comment.timestamp').isISO8601(),
     check('comment.username').isString(),
   ],
   async (req: any, res: any) => {

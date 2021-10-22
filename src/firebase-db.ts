@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 import admin from './firebase-service';
 
 const db = admin.database();
@@ -17,15 +19,19 @@ export class Config {
     this.trackName = data.trackName || null;
   }
 
+  static refDB() {
+    return db.ref('alice/config');
+  }
+
   static async get() {
-    const data = await db.ref('alice/config').get();
+    const data = await this.refDB().get();
     const config = new Config(data.val());
 
     return config;
   }
 
-  static async set(value: Config) {
-    await db.ref('alice/config').set(value);
+  static set(value: Config) {
+    this.refDB().set(value);
 
     return value;
   }
@@ -38,31 +44,39 @@ export class Config {
       value[key] = value[key] || old;
     }
 
-    return await this.set(value);
+    return this.set(value);
   }
 }
 
 interface Comment {
-  id: number;
   message: string;
   timestamp: string;
   username: string;
 }
 
 export class Comments extends Array<Comment> {
+  static commentId: number | null = null;
+
   constructor(data: any[]) {
-    super(...data);
+    const ts = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    const tsData = data.map((d) => ({ timestamp: d.timestamp || ts, ...d }));
+
+    super(...tsData);
+  }
+
+  static refDB() {
+    return db.ref('alice/comments');
   }
 
   static async get() {
-    const data = await db.ref('alice/comments').get();
+    const data = await this.refDB().get();
     const comments = new Comments(data.val() || []);
 
     return comments;
   }
 
   static async set(value: Comments | null) {
-    await db.ref('alice/comments').set(value);
+    this.refDB().set(value);
 
     return value;
   }
@@ -70,8 +84,7 @@ export class Comments extends Array<Comment> {
   static async update(value: Comments) {
     const comments = await this.get();
     comments.push(...value);
-
-    return await this.set(comments);
+    await this.refDB().set(comments);
   }
 
   static async updateSingle(value: Comment, position: number) {
@@ -85,6 +98,43 @@ export class Comments extends Array<Comment> {
     }
 
     return await this.set(comments);
+  }
+}
+
+export class Token extends String {
+  static refDB() {
+    return db.ref('notifications/alice/tokens');
+  }
+
+  /**
+   * Retrive all client tokens form firebase db
+   *
+   * @return
+   *   All tokens
+   */
+  static async get() {
+    const data = await this.refDB().get();
+    const tokens = await data.val();
+
+    return tokens;
+  }
+  /**
+   * Add a client token to firebase db
+   *
+   * @param {Token} value
+   */
+  static push(token: Token) {
+    const v = { token, lang: 'it' };
+    db.ref('notifications/alice/tokens/' + token).set(v);
+  }
+
+  /**
+   * Replace all client tokens
+   *
+   * @param value
+   */
+  static set(value: Token[]) {
+    this.refDB().set(value);
   }
 }
 
