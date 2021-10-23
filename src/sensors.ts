@@ -1,5 +1,17 @@
-export class Sensors {
+export interface HistoryData {
+  power: number;
+  speed: number;
+  heartrate: number;
+  cadence: number;
+}
+
+export class Sensors implements HistoryData {
   [key: string]: string | number | boolean;
+
+  power: number;
+  speed: number;
+  heartrate: number;
+  cadence: number;
 
   accX: number;
   accXMax: number;
@@ -8,18 +20,14 @@ export class Sensors {
   accZ: number;
   accZMax: number;
   bikeName: string;
-  cadence: number;
   cpuTemp: number;
   distance: number;
   // tslint:disable-next-line:variable-name
   distance_2: number;
   gear: number;
-  heartrate: number;
   latitude: number;
   longitude: number;
   satellites: number;
-  power: number;
-  speed: number;
   speedGps: number;
   // tslint:disable-next-line:variable-name
   speed_2: number;
@@ -56,5 +64,4 @@ export class Sensors {
     this.last = 0;
     this.connected = false;
   }
-
 }

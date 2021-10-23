@@ -100,7 +100,6 @@ app.get('/api/weather/last/:station', [check('station').isString()], (req: any, 
  */
 app.get(
   '/api/activities/last/:bike/:n',
-  // checkIfAdmin,
   [check('bike').isString(), check('n').isInt()],
   async (req: any, res: any) => {
     const err = validationResult(req);
@@ -126,12 +125,15 @@ app.get(
       const heartrate = infData.filter((d) => d.measure === 'heartrate').map((d) => d.value);
       const cadence = infData.filter((d) => d.measure === 'cadence').map((d) => d.value);
 
-      const data = Array.from({ length: len }, (_, id) => ({
+      const historyData = Array.from({ length: len }, (_, id) => ({
         power: power[id],
         speed: speed[id],
         heartrate: heartrate[id],
         cadence: cadence[id],
       }));
+
+      const admin = await isAdmin(req);
+      const data = admin ? historyData : historyData.map((d) => protectData(d));
 
       res.status(200).json(data);
     } catch (error: any) {

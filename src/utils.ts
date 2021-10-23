@@ -1,5 +1,5 @@
 import admin from './firebase-service';
-import { Sensors } from './sensors';
+import { Sensors, HistoryData } from './sensors';
 
 /* Sensors costants */
 export const bikes = ['taurusx', 'taurus', 'phoenix'];
@@ -43,7 +43,7 @@ export async function isAdmin(req: any) {
   }
 }
 
-export function protectData(data: Sensors | undefined) {
+export function protectData(data: Sensors | HistoryData | undefined): any {
   if (data) {
     data.power = -1;
     data.heartrate = -1;
