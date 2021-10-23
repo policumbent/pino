@@ -9,7 +9,7 @@ import { createUser, setUserAdmin } from './auth-service';
 import { bikeValues, weatherValues } from './mqtt-service';
 import { Config, Comments, Token } from './firebase-db';
 
-import { getData } from './influx-test';
+import { getData, getLastActivity } from './influx-service';
 import { isAdmin, protectData } from './utils';
 import { getTokens, sendNotifications } from './notifications-service';
 
@@ -112,12 +112,21 @@ app.get(
     const len = req.params.n;
 
     try {
-      const placeholder = {
-        chart: [],
-        miniChart: [],
-      };
-
-      res.status(200).json(placeholder);
+      getLastActivity(len, bike)
+        .then(result => {
+          let _res: any[] = [];
+          result.forEach((r: any) => _res.push({
+            measure: r.topic.split("/")[r.topic.split("/").length - 1],
+            time: r._time,
+            value: r._value
+          }))
+          res.status(200).json(_res);
+        })
+        .catch(error => {
+          console.error(error)
+          res.status(500).json('Error :' + error);
+        })
+      
     } catch {
       res.status(500).json({
         err: 'Unable to retrive data from database',
