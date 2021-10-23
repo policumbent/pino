@@ -9,7 +9,7 @@ import { createUser, setUserAdmin } from './auth-service';
 import { bikeValues, weatherValues } from './mqtt-service';
 import { Config, Comments, Token } from './firebase-db';
 
-import { getData, getLastActivity } from './influx-service';
+import { getData, getLastActivity, InfluxData } from './influx-service';
 import { isAdmin, protectData } from './utils';
 import { getTokens, sendNotifications } from './notifications-service';
 
@@ -112,24 +112,32 @@ app.get(
     const len = req.params.n;
 
     try {
-      getLastActivity(len, bike)
-        .then(result => {
-          let _res: any[] = [];
-          result.forEach((r: any) => _res.push({
-            measure: r.topic.split("/")[r.topic.split("/").length - 1],
-            time: r._time,
-            value: r._value
-          }))
-          res.status(200).json(_res);
-        })
-        .catch(error => {
-          console.error(error)
-          res.status(500).json('Error :' + error);
-        })
-      
-    } catch {
+      const response = await getLastActivity(len, bike);
+      const infData: InfluxData[] = response
+        .map((r: any) => ({
+          measure: r.topic.split('/')[r.topic.split('/').length - 1],
+          time: r._time,
+          value: r._value,
+        }))
+        .sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
+
+      const power = infData.filter((d) => d.measure === 'power').map((d) => d.value);
+      const speed = infData.filter((d) => d.measure === 'speed').map((d) => d.value);
+      const heartrate = infData.filter((d) => d.measure === 'heartrate').map((d) => d.value);
+      const cadence = infData.filter((d) => d.measure === 'cadence').map((d) => d.value);
+
+      const data = Array.from({ length: len }, (_, id) => ({
+        power: power[id],
+        speed: speed[id],
+        heartrate: heartrate[id],
+        cadence: cadence[id],
+      }));
+
+      res.status(200).json(data);
+    } catch (error: any) {
       res.status(500).json({
         err: 'Unable to retrive data from database',
+        msg: error.message,
       });
     }
   },
