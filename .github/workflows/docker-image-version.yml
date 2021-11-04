@@ -1,0 +1,34 @@
+name: Docker Image CI
+
+on:
+  push:
+    tags:
+      - '*'
+      
+jobs:
+  build:            
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build Image
+      id: build-image
+      uses: redhat-actions/buildah-build@v2
+      with:
+        image: pino
+        tags: ${{ github.ref }}
+        dockerfiles: |
+          ./Dockerfile
+    - name: Push To Github
+      id: push-to-github
+      uses: redhat-actions/push-to-registry@v2
+      with:
+        image: ${{ steps.build-image.outputs.image }}
+        tags: ${{ steps.build-image.outputs.tags }}
+        registry: ghcr.io/policumbent
+        username: policumbent
+        password: ${{ secrets.DOCKER_PUSH }}
+
+    - name: Print image url
+      run: echo "Image pushed to ${{ steps.push-to-github.outputs.registry-paths }}"
