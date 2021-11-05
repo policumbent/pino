@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan'; // logging middleware
 import path from 'path';
+import * as rfs from 'rotating-file-stream';
 import { check, validationResult } from 'express-validator'; // validation middleware
 
 import { checkIfAdmin } from './auth-middleware';
@@ -14,32 +15,39 @@ import { getData, getLastActivity, InfluxData } from './influx-service';
 import { isAdmin, protectData } from './utils';
 import { getTokens, sendNotifications } from './notifications-service';
 
-var rfs = require('rotating-file-stream');
-
 const app = express();
 const PORT = 3001;
-let DEV = app.get('env') == 'development'
+const DEV = app.get('env') === 'development';
 
-if  (DEV) {
+if (DEV) {
   app.use(morgan('dev'));
-  app.use(cors()); // cors to everyone
-}
-else {
-  var accessLogStream = rfs.createStream('access.log', {
+  app.use(cors()); // CORS to everyone
+} else {
+  const accessLogStream = rfs.createStream('access.log', {
     interval: '1d', // rotate daily
-    path: path.join(__dirname, 'log')
-  })
-  app.use(morgan('combined', { stream: accessLogStream }))
-  app.use(cors({
-    origin: ['https://alice.policumbent.it', 'pino.policumbent.it']
- })); // production CORS
-}
+    path: path.join(__dirname, '..', 'log'),
+  });
   
-app.use(express.json());
+  // log all requests to log files
+  app.use(morgan('combined', { stream: accessLogStream }));
 
-// app.use(cors({
-//   origin: 'https://alice.policumbent.it'
-// }));
+  // log only 4xx and 5xx responses to console
+  app.use(
+    morgan('dev', {
+      skip(req, res) {
+        return res.statusCode < 400;
+      },
+    }),
+  );
+
+  app.use(
+    cors({
+      origin: ['https://alice.policumbent.it', 'pino.policumbent.it'],
+    }),
+  ); // production CORS
+}
+
+app.use(express.json());
 
 /* General APIs */
 

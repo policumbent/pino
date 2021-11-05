@@ -1,5 +1,6 @@
 # Logs
 logs
+log/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -21,4 +22,3 @@ jspm_packages/
 serviceAccount.json
 serviceAccountKey.json
 dist
-src/log/
