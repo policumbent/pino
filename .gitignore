@@ -20,5 +20,4 @@ jspm_packages/
 # custom
 serviceAccount.json
 serviceAccountKey.json
-package-lock.json
 dist
