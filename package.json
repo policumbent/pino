@@ -29,7 +29,8 @@
     "express-validator": "^6.11.1",
     "firebase-admin": "^9.9.0",
     "morgan": "^1.10.0",
-    "mqtt": "^4.2.8"
+    "mqtt": "^4.2.8",
+    "rotating-file-stream": "^2.1.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.10",

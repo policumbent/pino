@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan'; // logging middleware
+import path from 'path';
 import { check, validationResult } from 'express-validator'; // validation middleware
 
 import { checkIfAdmin } from './auth-middleware';
@@ -13,10 +14,22 @@ import { getData, getLastActivity, InfluxData } from './influx-service';
 import { isAdmin, protectData } from './utils';
 import { getTokens, sendNotifications } from './notifications-service';
 
+var rfs = require('rotating-file-stream');
+
 const app = express();
 const PORT = 3001;
+let DEV = app.get('env') == 'development'
 
-app.use(morgan('dev'));
+if  (DEV)
+  app.use(morgan('dev'));
+else {
+  var accessLogStream = rfs.createStream('access.log', {
+    interval: '1d', // rotate daily
+    path: path.join(__dirname, 'log')
+  })
+  app.use(morgan('combined', { stream: accessLogStream }))
+}
+  
 app.use(express.json());
 app.use(cors()); // cors abilitati
 
