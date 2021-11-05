@@ -20,18 +20,22 @@ const app = express();
 const PORT = 3001;
 let DEV = app.get('env') == 'development'
 
-if  (DEV)
+if  (DEV) {
   app.use(morgan('dev'));
+  app.use(cors()); // cors to everyone
+}
 else {
   var accessLogStream = rfs.createStream('access.log', {
     interval: '1d', // rotate daily
     path: path.join(__dirname, 'log')
   })
   app.use(morgan('combined', { stream: accessLogStream }))
+  app.use(cors({
+    origin: ['https://alice.policumbent.it', 'pino.policumbent.it']
+ })); // production CORS
 }
   
 app.use(express.json());
-app.use(cors()); // cors abilitati
 
 // app.use(cors({
 //   origin: 'https://alice.policumbent.it'
