@@ -358,7 +358,7 @@ app.put(
 /**
  * Update or add a single comment in defined position
  *
- * params: @pos -> comment position into array
+ * params: @pos -> comment position into array (starting from 0)
  * body: @comment -> comment to add
  */
 app.put(
@@ -380,10 +380,42 @@ app.put(
     const newComment = req.body.comment;
 
     try {
-      const comments = await Comments.updateSingle(newComment, pos - 1);
+      const comments = await Comments.updateSingle(newComment, pos);
 
       res.status(200).json(comments);
     } catch {
+      res.status(500).json({
+        err: `Unable to update comment in position ${pos}`,
+      });
+    }
+  },
+);
+
+/**
+ * Remove a single comment in defined position
+ *
+ * params: @pos -> comment position into array (starting from 0)
+ */
+app.delete(
+  '/api/alice/comments/:pos',
+  checkIfAdmin,
+  [
+    check('pos').isInt({ min: 0 }),
+  ],
+  async (req: any, res: any) => {
+    const err = validationResult(req);
+    if (!err.isEmpty()) {
+      return res.status(422).json({ err: err.array() });
+    }
+
+    const pos = req.params.pos;
+
+    try {
+      const comments = await Comments.removeSingle(pos);
+
+      res.status(200).json(comments);
+    } catch (ex){
+      console.log(ex)
       res.status(500).json({
         err: `Unable to update comment in position ${pos}`,
       });
@@ -409,6 +441,23 @@ app.get('/api/alice/notifications', async (_: any, res: any) => {
   try {
     const placeholder = [{ id: 1, message: 'notifica di prova', public: true }];
     res.status(200).json(placeholder);
+  } catch {
+    res.status(500).json({
+      err: 'Unable to retrive notifications',
+    });
+  }
+});
+
+
+/**
+ * Get all notification subscribers
+ * 
+ * return: @tokens -> array of tokens subscribed to notifications
+ */
+app.get('/api/alice/notifications/subscribers', checkIfAdmin, async (_: any, res: any) => {
+  try {
+    const tokens = await getTokens('alice/tokens');
+    res.status(200).json(tokens);
   } catch {
     res.status(500).json({
       err: 'Unable to retrive notifications',
