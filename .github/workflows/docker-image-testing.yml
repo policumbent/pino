@@ -1,10 +1,10 @@
-name: Docker Image (latest)
+name: Docker Image Testing
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ dev ]
 
 
 jobs:
@@ -19,10 +19,9 @@ jobs:
       uses: redhat-actions/buildah-build@v2
       with:
         image: pino
-        tags: latest
+        tags: testing # add this `-${{ github.head_ref }}.${{ github.sha }}` for same more informations
         dockerfiles: |
           ./Dockerfile
-
     - name: Push To Github
       id: push-to-github
       uses: redhat-actions/push-to-registry@v2
