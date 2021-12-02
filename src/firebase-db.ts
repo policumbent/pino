@@ -59,7 +59,9 @@ export class Comments extends Array<Comment> {
 
   constructor(data: any[]) {
     const ts = dayjs().add(2, 'hour').format('YYYY-MM-DD HH:mm:ss');
-    const tsData = data.map((d) => ({ timestamp: d.timestamp || ts, ...d }));
+    let tsData = [];
+    if (Array.isArray(data))
+      tsData = data.map((d) => ({ timestamp: d.timestamp || ts, ...d }));
 
     super(...tsData);
   }
@@ -96,6 +98,16 @@ export class Comments extends Array<Comment> {
       position = comments.length;
       comments[position] = value;
     }
+
+    return await this.set(comments);
+  }
+
+  static async removeSingle(position: number) {
+    const comments = await this.get();
+    
+    if (position < comments.length) {
+      comments.splice(position, 1);
+    } 
 
     return await this.set(comments);
   }
