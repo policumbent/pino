@@ -1,8 +1,6 @@
 import dayjs from 'dayjs';
 
-import admin from './firebase-service';
-
-const db = admin.database();
+import { db } from './firebase-service';
 
 export class Config {
   [key: string]: string;
@@ -60,8 +58,7 @@ export class Comments extends Array<Comment> {
   constructor(data: any[]) {
     const ts = dayjs().add(2, 'hour').format('YYYY-MM-DD HH:mm:ss');
     let tsData = [];
-    if (Array.isArray(data))
-      tsData = data.map((d) => ({ timestamp: d.timestamp || ts, ...d }));
+    if (Array.isArray(data)) tsData = data.map((d) => ({ timestamp: d.timestamp || ts, ...d }));
 
     super(...tsData);
   }
@@ -104,10 +101,10 @@ export class Comments extends Array<Comment> {
 
   static async removeSingle(position: number) {
     const comments = await this.get();
-    
+
     if (position < comments.length) {
       comments.splice(position, 1);
-    } 
+    }
 
     return await this.set(comments);
   }

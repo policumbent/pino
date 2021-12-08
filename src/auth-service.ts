@@ -1,9 +1,9 @@
-import admin from './firebase-service';
+import { auth } from './firebase-service';
 
 export const createUser = async (req: any, res: any) => {
   const { email, password, firstName, lastName } = req.body;
 
-  const user = await admin.auth().createUser({
+  const user = await auth().createUser({
     email,
     password,
     displayName: `${firstName} ${lastName}`,
@@ -17,14 +17,13 @@ export const setUserAdmin = async (req: any, res: any, value: boolean) => {
 
   if (!email || email.length < 1) return res.status(400).json({ msg: 'Email required' });
 
-  admin
-    .auth()
+  auth()
     .getUserByEmail(email)
     .catch((err) => {
       res.status(400).json({ msg: 'User not found' });
     })
     .then((user: any) => {
-      return admin.auth().setCustomUserClaims(user.uid, {
+      return auth().setCustomUserClaims(user.uid, {
         admin: value,
       });
     })

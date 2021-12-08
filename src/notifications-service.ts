@@ -1,8 +1,6 @@
-import admin from './firebase-service';
+import { db, messaging } from './firebase-service';
 
 export async function getTokens(appName: string) {
-  const db = admin.database();
-
   const tokens = await (await db.ref(`notifications/${appName}`).get()).val();
   const tokensIt: string[] = [];
   const tokensEn: string[] = [];
@@ -31,8 +29,7 @@ export async function sendNotifications(
     priority: 'high',
     timeToLive: 60 * 60 * 3,
   };
-  return admin
-    .messaging()
+  return messaging()
     .sendToDevice(tokens, payload, options)
     .then((response) => {
       console.log('Successfully sent message:', response);

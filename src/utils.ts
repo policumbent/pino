@@ -1,4 +1,4 @@
-import admin from './firebase-service';
+import { auth } from './firebase-service';
 import { Sensors, HistoryData } from './sensors';
 
 /* Sensors costants */
@@ -33,7 +33,7 @@ export async function isAdmin(req: any) {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
     try {
       const authToken = req.headers.authorization.split(' ')[1];
-      const userInfo = await admin.auth().verifyIdToken(authToken);
+      const userInfo = await auth().verifyIdToken(authToken);
       return userInfo.admin;
     } catch (e) {
       return false;

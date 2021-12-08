@@ -5,4 +5,6 @@ admin.initializeApp({
   databaseURL: 'https://policumbent-2021-default-rtdb.firebaseio.com',
 });
 
-export default admin;
+export const db = admin.database();
+export const auth = admin.auth;
+export const messaging = admin.messaging;

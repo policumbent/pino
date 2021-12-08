@@ -1,6 +1,37 @@
-version: '3'
+version: '3.8'
+
 services:
   pino:
+    build:
+      context: ./
+      target: production
     image: ghcr.io/policumbent/pino:latest
     ports:
       - 3001:3001
+    environment:
+      NODE_ENV: production
+
+  pino-dev:
+    build:
+      context: ./
+      target: development
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      NODE_ENV: development
+      CHOKIDAR_USEPOLLING: 'true'
+
+  pino-test:
+    profiles: ['test']
+    tty: true
+    stdin_open: true
+    build:
+      context: ./
+      target: test
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      NODE_ENV: test
+      CHOKIDAR_USEPOLLING: 'true'

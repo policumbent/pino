@@ -19,9 +19,7 @@ const app = express();
 
 app.use(express.json());
 
-const DEV = app.get('env') === 'development';
-
-if (DEV) {
+if (process.env.development) {
   app.use(morgan('dev'));
   app.use(cors()); // CORS to everyone
 } else {
@@ -29,7 +27,7 @@ if (DEV) {
     interval: '1d', // rotate daily
     path: path.join(__dirname, '..', 'log'),
   });
-  
+
   // log all requests to log files
   app.use(morgan('combined', { stream: accessLogStream }));
 
@@ -49,7 +47,6 @@ if (DEV) {
   ); // production CORS
 }
 
-
 /* General APIs */
 
 /**
@@ -59,7 +56,7 @@ if (DEV) {
  *
  * params: @bike -> bike id
  */
- app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: any, res: any) => {
+app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: any, res: any) => {
   const err = validationResult(req);
   if (!err.isEmpty()) {
     return res.status(422).json({ err: err.array() });
@@ -400,9 +397,7 @@ app.put(
 app.delete(
   '/api/alice/comments/:pos',
   checkIfAdmin,
-  [
-    check('pos').isInt({ min: 0 }),
-  ],
+  [check('pos').isInt({ min: 0 })],
   async (req: any, res: any) => {
     const err = validationResult(req);
     if (!err.isEmpty()) {
@@ -415,8 +410,8 @@ app.delete(
       const comments = await Comments.removeSingle(pos);
 
       res.status(200).json(comments);
-    } catch (ex){
-      console.log(ex)
+    } catch (ex) {
+      console.log(ex);
       res.status(500).json({
         err: `Unable to update comment in position ${pos}`,
       });
@@ -449,10 +444,9 @@ app.get('/api/alice/notifications', async (_: any, res: any) => {
   }
 });
 
-
 /**
  * Get all notification subscribers
- * 
+ *
  * return: @tokens -> array of tokens subscribed to notifications
  */
 app.get('/api/alice/notifications/subscribers', checkIfAdmin, async (_: any, res: any) => {

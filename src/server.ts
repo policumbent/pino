@@ -1,7 +1,7 @@
 import app from './app';
 import { initMQTT } from './mqtt-service';
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 initMQTT();
 
