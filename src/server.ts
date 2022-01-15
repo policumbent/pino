@@ -1,9 +1,9 @@
 import app from './app';
-import { initMQTT } from './mqtt-service';
+import { mqtt } from './services';
 
 const PORT = process.env.PORT || 3001;
 
-initMQTT();
+mqtt.initMQTT();
 
 /* Activate the sever */
 

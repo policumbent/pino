@@ -1,7 +1,6 @@
 import mqtt from 'mqtt';
-import { Sensors } from './sensors';
-import { WeatherData } from './weather-data';
-import { ws, bikes, getDestinationMessage, isBike, isWeatherStation } from './utils';
+import { Sensors, WeatherData } from './types';
+import { ws, bikes, getDestinationMessage, isBike, isWeatherStation } from '../../utils';
 
 import Dict = NodeJS.Dict;
 

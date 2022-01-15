@@ -7,22 +7,15 @@ import * as rfs from 'rotating-file-stream';
 import { check, validationResult } from 'express-validator'; // validation middleware
 
 import { checkIfAdmin } from './auth-middleware';
-import { createUser, setUserAdmin } from './auth-service';
-import { bikeValues, weatherValues } from './mqtt-service';
-import { Config, Comments, Token } from './firebase-db';
-
-import { getData, getLastActivity, InfluxData } from './influx-service';
 import { isAdmin, protectData } from './utils';
-import { getTokens, sendNotifications } from './notifications-service';
+import { auth, mqtt, db, influx, notifications } from './services';
+import { InfData } from './services/types';
 
 const app = express();
 
 app.use(express.json());
 
-if (process.env.development) {
-  app.use(morgan('dev'));
-  app.use(cors()); // CORS to everyone
-} else {
+if (process.env.NODE_ENV === 'production') {
   const accessLogStream = rfs.createStream('access.log', {
     interval: '1d', // rotate daily
     path: path.join(__dirname, '..', 'log'),
@@ -34,17 +27,21 @@ if (process.env.development) {
   // log only 4xx and 5xx responses to console
   app.use(
     morgan('dev', {
-      skip(req, res) {
+      skip(_, res) {
         return res.statusCode < 400;
       },
     }),
   );
 
+  // production CORS
   app.use(
     cors({
       origin: ['https://alice.policumbent.it', 'pino.policumbent.it'],
     }),
-  ); // production CORS
+  );
+} else {
+  app.use(morgan('dev'));
+  app.use(cors());
 }
 
 /* General APIs */
@@ -66,7 +63,7 @@ app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: an
 
   try {
     const admin = await isAdmin(req);
-    const sensorsData = bikeValues[bike];
+    const sensorsData = mqtt.bikeValues[bike];
     const data = admin ? sensorsData : protectData(sensorsData);
     if (data !== undefined) {
       data.connected = Date.now() - data.last < 5000;
@@ -82,7 +79,7 @@ app.get('/api/activities/last/:bike', [check('bike').isString()], async (req: an
 
 /* Retrive live data from all weather stations (from mqtt) */
 app.get('/api/weather/last', (_: any, res: any) => {
-  const data = weatherValues;
+  const data = mqtt.weatherValues;
 
   try {
     res.status(200).json(data);
@@ -106,7 +103,8 @@ app.get('/api/weather/last/:station', [check('station').isString()], (req: any, 
   const station = req.params.station;
 
   try {
-    const data = weatherValues[station];
+    const data = mqtt.weatherValues[station];
+
     res.status(200).json(data);
   } catch {
     res.status(500).json({
@@ -134,8 +132,9 @@ app.get(
     const len = req.params.n;
 
     try {
-      const response = await getLastActivity(len, bike);
-      const infData: InfluxData[] = response
+      const response = await influx.getLastActivity(len, bike);
+
+      const infData: InfData[] = response
         .map((r: any) => ({
           measure: r.topic.split('/')[r.topic.split('/').length - 1],
           time: r._time,
@@ -173,7 +172,7 @@ app.get(
 /* Retrive current configuration */
 app.get('/api/alice/config', async (_: any, res: any) => {
   try {
-    const config = await Config.get();
+    const config = await db.Config.get();
 
     res.status(200).json(config);
   } catch {
@@ -209,7 +208,7 @@ app.post(
     console.log(config);
 
     try {
-      await Config.set(config);
+      await db.Config.set(config);
 
       res.status(200).json(config);
     } catch {
@@ -244,10 +243,10 @@ app.put(
       return res.status(422).json({ err: err.array() });
     }
 
-    const values = new Config(req.body);
+    const values = new db.Config(req.body);
 
     try {
-      const config = await Config.update(values);
+      const config = await db.Config.update(values);
 
       res.status(200).json(config);
     } catch {
@@ -266,7 +265,7 @@ app.put('/api/alice/tokens', [check('token').isString()], async (req: any, res: 
 
   const token = req.body.token;
   try {
-    Token.push(token);
+    db.Token.push(token);
 
     res.status(200).end();
   } catch {
@@ -279,7 +278,7 @@ app.put('/api/alice/tokens', [check('token').isString()], async (req: any, res: 
 /* Retrive comments */
 app.get('/api/alice/comments', async (_: any, res: any) => {
   try {
-    const comments = await Comments.get();
+    const comments = await db.Comments.get();
 
     res.status(200).json(comments);
   } catch {
@@ -308,10 +307,10 @@ app.post(
       return res.status(422).json({ err: err.array() });
     }
 
-    const comments = new Comments(req.body.comments);
+    const comments = new db.Comments(req.body.comments);
 
     try {
-      await Comments.set(comments);
+      await db.Comments.set(comments);
 
       res.status(200).json(comments);
     } catch {
@@ -339,10 +338,10 @@ app.put(
       return res.status(422).json({ err: err.array() });
     }
 
-    const newComments = new Comments(req.body.comments);
+    const newComments = new db.Comments(req.body.comments);
 
     try {
-      const comments = await Comments.update(newComments);
+      const comments = await db.Comments.update(newComments);
 
       res.status(200).json(comments);
     } catch {
@@ -378,7 +377,7 @@ app.put(
     const newComment = req.body.comment;
 
     try {
-      const comments = await Comments.updateSingle(newComment, pos);
+      const comments = await db.Comments.updateSingle(newComment, pos);
 
       res.status(200).json(comments);
     } catch {
@@ -407,7 +406,7 @@ app.delete(
     const pos = req.params.pos;
 
     try {
-      const comments = await Comments.removeSingle(pos);
+      const comments = await db.Comments.removeSingle(pos);
 
       res.status(200).json(comments);
     } catch (ex) {
@@ -422,7 +421,7 @@ app.delete(
 /* Delete all comments */
 app.delete('/api/alice/comments', checkIfAdmin, async (_: any, res: any) => {
   try {
-    await Comments.set(null);
+    await db.Comments.set(null);
 
     res.status(200).json('Deleted all comments');
   } catch {
@@ -451,7 +450,7 @@ app.get('/api/alice/notifications', async (_: any, res: any) => {
  */
 app.get('/api/alice/notifications/subscribers', checkIfAdmin, async (_: any, res: any) => {
   try {
-    const tokens = await getTokens('alice/tokens');
+    const tokens = await notifications.getTokens('alice/tokens');
     res.status(200).json(tokens);
   } catch {
     res.status(500).json({
@@ -486,12 +485,12 @@ app.post(
     const notification = req.body;
 
     try {
-      const tokens = await getTokens('alice/tokens');
+      const tokens = await notifications.getTokens('alice/tokens');
 
       if (tokens.tokensIt.length > 0)
-        sendNotifications(tokens.tokensIt, notification.titleIt, notification.messageIt);
+        notification.send(tokens.tokensIt, notification.titleIt, notification.messageIt);
       if (tokens.tokensEn.length > 0)
-        sendNotifications(tokens.tokensEn, notification.titleEn, notification.messageEn);
+        notification.send(tokens.tokensEn, notification.titleEn, notification.messageEn);
 
       if (tokens.tokensIt.length === 0 && tokens.tokensEn.length === 0)
         res.status(500).json({
@@ -509,14 +508,16 @@ app.post(
 /* Users APIs */
 
 /* Create a new user */
-app.post('/api/auth/signup', createUser);
+app.post('/api/auth/signup', auth.createUser);
 
 /* Create a new admin */
-app.post('/api/auth/makeadmin', checkIfAdmin, (req: any, res: any) => setUserAdmin(req, res, true));
+app.post('/api/auth/makeadmin', checkIfAdmin, (req: any, res: any) =>
+  auth.setUserAdmin(req, res, true),
+);
 
 /* Remove an admin */
 app.post('/api/auth/removeadmin', checkIfAdmin, (req: any, res: any) =>
-  setUserAdmin(req, res, false),
+  auth.setUserAdmin(req, res, false),
 );
 
 app.get('/testadmin', checkIfAdmin, (_: any, res: any) =>
@@ -531,13 +532,13 @@ app.get('/query', checkIfAdmin, (req: any, res: any) => {
   const measurement = req.query.measurement;
 
   // to improve the query performance
-  getData(start, measurement).then((data) => res.status(200).json(data));
+  influx.getData(start, measurement).then((data) => res.status(200).json(data));
 });
 
 app.get('/test', (req: any, res: any) => res.status(200).end());
 
-app.get('/bike_live', (req: any, res: any) => res.status(200).json(bikeValues));
+app.get('/bike_live', (req: any, res: any) => res.status(200).json(mqtt.bikeValues));
 
-app.get('/weather_live', (req: any, res: any) => res.status(200).json(weatherValues));
+app.get('/weather_live', (req: any, res: any) => res.status(200).json(mqtt.weatherValues));
 
 export default app;

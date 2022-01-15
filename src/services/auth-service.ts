@@ -1,4 +1,4 @@
-import { auth } from './firebase-service';
+import { auth } from './firebase/firebase-service';
 
 export const createUser = async (req: any, res: any) => {
   const { email, password, firstName, lastName } = req.body;
