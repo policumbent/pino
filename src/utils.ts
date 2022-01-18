@@ -1,3 +1,6 @@
+import path from 'path';
+import * as rfs from 'rotating-file-stream';
+
 import { firebase } from './services';
 import { Sensors, HistoryData } from './services/mqtt/types';
 
@@ -62,4 +65,16 @@ export function protectData(data: Sensors | HistoryData | undefined): any {
   }
 
   return data;
+}
+
+/**
+ * Create a rotating file stream for logging
+ *
+ * @returns
+ */
+export function logStream() {
+  return rfs.createStream('access.log', {
+    interval: '1d', // rotate daily
+    path: path.join(__dirname, '..', 'log'),
+  });
 }
