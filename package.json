@@ -13,7 +13,6 @@
     "prestart": "npm run build",
     "start": "node .",
     "dev": "nodemon src/server.ts",
-    "prebuild": "rm -rf dist/*",
     "build": "eslint -c eslintc.js --fix && tsc",
     "test": "jest --runInBand --passWithNoTests",
     "test:watch": "jest --watchAll --runInBand --passWithNoTests",
