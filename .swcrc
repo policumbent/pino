@@ -1,0 +1,18 @@
+{
+  "sourceMaps": true,
+
+  "module": {
+    "type": "commonjs"
+  },
+  "jsc": {
+    "parser": {
+      "syntax": "typescript"
+    },
+    "target": "es2020"
+  },
+  "env": {
+    "targets": {
+      "node": 16
+    }
+  }
+}

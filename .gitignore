@@ -22,3 +22,4 @@ jspm_packages/
 serviceAccount.json
 serviceAccountKey.json
 dist
+.swc

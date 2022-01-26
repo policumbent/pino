@@ -46,6 +46,7 @@ export function initMQTT() {
     const destination = getDestinationMessage(topic);
 
     if (isBike(destination)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const bike = bikeValues[destination.name]!;
       if (typeof bike[destination.id] === 'number') {
         bike[destination.id] = Number(message);
@@ -54,6 +55,7 @@ export function initMQTT() {
       }
       bike.last = Date.now();
     } else if (isWeatherStation(destination)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       weatherValues[destination.name]![destination.id] = Number(message);
     }
   });
