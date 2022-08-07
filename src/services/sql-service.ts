@@ -1,4 +1,4 @@
-import mariadb from 'mariadb';
+import mariadb, {SqlError} from 'mariadb';
 
 // const host = process.env.DB_HOST
 
@@ -37,7 +37,9 @@ export async function get_bikes(){
 }
 
 export async function upload(module: string, bike_id: number, data: Array<any>){
-  let conn
+  let conn;
+  let uploaded_lines = 0;
+  console.log(data.length)
   try {
     conn = await pool.getConnection();
   // todo: ma la security? e i controlli?
@@ -51,11 +53,18 @@ export async function upload(module: string, bike_id: number, data: Array<any>){
         const sql = `INSERT INTO ${module}(${keys})
                      values (${v})`
         // console.log(sql)
-        await conn.query(sql);
+        try {
+          await conn.query(sql);
+          uploaded_lines++;
+        }
+        catch(e) {
+          if(!(e instanceof SqlError)){
+            throw e;
+          }
+        }
       }
   }
-    catch(e) {
-    // console.log(e);
+  catch(e) {
     if (conn)
           conn.release(); //release to pool
   }
@@ -63,4 +72,5 @@ export async function upload(module: string, bike_id: number, data: Array<any>){
     if (conn)
       conn.release(); //release to pool
   }
+  return uploaded_lines;
 }

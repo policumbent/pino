@@ -3,6 +3,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan'; // logging middleware
+import bodyParser from "body-parser";
 
 import { checkIfAdmin } from './auth-middleware';
 import { aliceRouter, userRouter } from './routes';
@@ -10,10 +11,18 @@ import { mqtt, influx } from './services';
 import { logStream } from './utils';
 import {get_bikes, upload} from "./services/sql-service";
 
+
 const app = express();
 
-app.use(express.json());
+app.use(bodyParser.json({
+  limit: '50mb'
+}));
 
+app.use(bodyParser.urlencoded({
+  limit: '50mb',
+  parameterLimit: 100000,
+  extended: true
+}));
 
 if (process.env.NODE_ENV === 'production') {
   // log all requests to log files
@@ -76,12 +85,12 @@ app.get('/last_timestamp', (req: any, res: any) => {
   get_bikes().then((data) => res.status(200).json(data));
 });
 
-app.post('/data/:module/:bike_id', (req: any, res: any) => {
+app.post('/data/:module/:bike_id', checkIfAdmin, (req: any, res: any) => {
   upload(
     req.params.module,
     req.params.bike_id,
     req.body)
-    .then(() => res.status(201).end())
+    .then( uploaded_lines => res.json({uploaded_lines, total_lines: req.body.length}).status(201).end())
 });
 
 
