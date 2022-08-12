@@ -1,6 +1,7 @@
 import mqtt from 'mqtt';
 import { Sensors, WeatherData } from './types';
-import { ws, bikes, getDestinationMessage, isBike, isWeatherStation } from '../../utils';
+import { ws, getDestinationMessage, isBike, isWeatherStation } from '../../utils';
+import {get_bikes_names} from "../sql-service";
 
 import Dict = NodeJS.Dict;
 
@@ -8,7 +9,9 @@ export const bikeValues: Dict<Sensors> = {};
 export const weatherValues: Dict<WeatherData> = {};
 
 /** Inizialize and setup mqtt instance */
-export function initMQTT() {
+export async function initMQTT() {
+  const bikes = await get_bikes_names();
+  console.log(bikes)
   const client = mqtt.connect({
     protocol: 'mqtts',
     host: 'server.policumbent.it',
@@ -50,6 +53,7 @@ export function initMQTT() {
       const bike = bikeValues[destination.name]!;
       if (typeof bike[destination.id] === 'number') {
         bike[destination.id] = Number(message);
+        console.log(message);
       } else {
         bike[destination.id] = String(message);
       }
