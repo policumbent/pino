@@ -36,6 +36,17 @@ export async function get_bikes(){
   return await query("SELECT * FROM bikes")
 }
 
+export async function get_bikes_names(){
+  const res = await query("SELECT name FROM bikes");
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  return res.map(value => value.name)
+}
+
+export async function get_weather_stations(){
+  return await query("SELECT * FROM weather_stations")
+}
+
 export async function upload(module: string, bike_id: number, data: Array<any>){
   let conn;
   let uploaded_lines = 0;

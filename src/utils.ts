@@ -5,7 +5,6 @@ import { firebase } from './services';
 import { Sensors, HistoryData } from './services/mqtt/types';
 
 /* Sensors costants */
-export const bikes = ['taurusx', 'taurus', 'phoenix'];
 export const ws = ['ws1', 'ws_test'];
 
 /* Utility for message parsing */
