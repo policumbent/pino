@@ -1,12 +1,14 @@
 import mqtt from 'mqtt';
 import { Sensors, WeatherData } from './types';
-import { ws, getDestinationMessage, isBike, isWeatherStation } from '../../utils';
+import { ws, getMqttMessageInfo, isBike, isWeatherStation } from '../../utils';
 import {get_bikes_names} from "../sql-service";
+import {insert_ant_data_alice, insert_gps_data_alice, insert_gear_data_alice} from "../sql-service";
 
 import Dict = NodeJS.Dict;
 
 export const bikeValues: Dict<Sensors> = {};
 export const weatherValues: Dict<WeatherData> = {};
+const keys = Object.keys(new Sensors(''));
 
 /** Inizialize and setup mqtt instance */
 export async function initMQTT() {
@@ -17,8 +19,8 @@ export async function initMQTT() {
     host: 'server.policumbent.it',
     port: 8883,
     rejectUnauthorized: false,
-    username: process.env.MQTT_USERNAME,
-    password: process.env.MQTT_PASSWORD,
+    username: 'stefano',
+    password: 'martafaschifo!',
   });
 
   bikes.forEach((bike) => (bikeValues[bike] = new Sensors(bike)));
@@ -46,9 +48,34 @@ export async function initMQTT() {
   });
 
   client.on('message', (topic: string, message: Buffer) => {
-    const destination = getDestinationMessage(topic);
-
-    if (isBike(destination)) {
+    const mqttMessageInfo = getMqttMessageInfo(topic);
+    console.log(message.toString());
+    console.log(topic);
+    if (mqttMessageInfo.type == 'bikes'){
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const bike = bikeValues[mqttMessageInfo.name]!;
+      if(mqttMessageInfo.datatype == 'sensors'){
+        const data = JSON.parse(message.toString());
+        if(mqttMessageInfo.sensor == 'ant'){
+          insert_ant_data_alice(data, mqttMessageInfo.name);
+        }
+        else if(mqttMessageInfo.sensor == 'gps'){
+          insert_gps_data_alice({...data}, mqttMessageInfo.name);
+          data.speedGps = data.speed;
+          delete data.speed;
+          delete data.distance;
+        }
+        else if(mqttMessageInfo.sensor == 'gear'){
+          insert_gear_data_alice(data, mqttMessageInfo.name);
+        }
+        for (const item in data) {
+          if (keys.includes(item))
+            bike[item] = data[item];
+          bike.last = Date.now();
+        }
+      }
+    }
+/*    if (isBike(destination, bikes)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const bike = bikeValues[destination.name]!;
       if (typeof bike[destination.id] === 'number') {
@@ -61,6 +88,6 @@ export async function initMQTT() {
     } else if (isWeatherStation(destination)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       weatherValues[destination.name]![destination.id] = Number(message);
-    }
+    }*/
   });
 }
