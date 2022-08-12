@@ -77,8 +77,9 @@ export async function insert_ant_data_alice(data: AntData, bike: string){
       [timestamp, bike_id, device_id, data.speed, data.distance, data.cadence, data.power, data.heartrate]);
     console.log(res); // { affectedRows: 1, insertId: 1, warningStatus: 0 }
   } catch (err) {
-    console.log(err);
-    throw err;
+    if((err instanceof SqlError)){
+      console.log(err);
+    } else throw err;
   } finally {
     if (conn){
       conn.end();
@@ -106,8 +107,9 @@ export async function insert_gps_data_alice(data: GpsData, bike: string){
       [timestamp, bike_id, device_id, timestampGps, data.speed, data.distance, data.latitude, data.longitude, data.altitude, data.satellites, data.distance2timing]);
     console.log(res); // { affectedRows: 1, insertId: 1, warningStatus: 0 }
   } catch (err) {
-    console.log(err);
-    throw err;
+    if((err instanceof SqlError)){
+      console.log(err);
+    } else throw err;
   } finally {
     if (conn){
       conn.end();
@@ -134,8 +136,9 @@ export async function insert_gear_data_alice(data: GearData, bike: string){
       [timestamp, bike_id, device_id, data.gear]);
     console.log(res); // { affectedRows: 1, insertId: 1, warningStatus: 0 }
   } catch (err) {
-    console.log(err);
-    throw err;
+    if((err instanceof SqlError)){
+      console.log(err);
+    } else throw err;
   } finally {
     if (conn){
       conn.end();
@@ -169,10 +172,10 @@ export async function upload(module: string, bike_id: number, data: Array<any>){
           await conn.query(sql);
           uploaded_lines++;
         }
-        catch(e) {
-          if(!(e instanceof SqlError)){
-            throw e;
-          }
+        catch(err) {
+          if((err instanceof SqlError)){
+            console.log(err);
+          } else throw err;
         }
       }
   }
