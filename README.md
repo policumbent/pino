@@ -1,6 +1,6 @@
-# Pino :evergreen_tree:
+![Pino](img/banner.png)
 
-Pino il serverino
+<h3 align="center">🌲 il serverino </h3>
 
 ## Development
 

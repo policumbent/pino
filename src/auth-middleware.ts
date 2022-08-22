@@ -1,4 +1,4 @@
-import { auth } from './firebase-service';
+import { auth } from './services/firebase/firebase-service';
 
 const getAuthToken = (req: any, res: any, next: any) => {
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {

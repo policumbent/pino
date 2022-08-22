@@ -1,4 +1,4 @@
-import { auth } from './firebase-service';
+import { auth } from './firebase/firebase-service';
 
 export const createUser = async (req: any, res: any) => {
   const { email, password, firstName, lastName } = req.body;
@@ -20,7 +20,7 @@ export const setUserAdmin = async (req: any, res: any, value: boolean) => {
   auth()
     .getUserByEmail(email)
     .catch((err) => {
-      res.status(400).json({ msg: 'User not found' });
+      res.status(400).json({ msg: 'User not found', err });
     })
     .then((user: any) => {
       return auth().setCustomUserClaims(user.uid, {
@@ -33,6 +33,6 @@ export const setUserAdmin = async (req: any, res: any, value: boolean) => {
         .json({ msg: value ? `${email} is now admin` : `${email} removed from admin` });
     })
     .catch((err) => {
-      res.status(500).json({ msg: 'Server error' });
+      res.status(500).json({ msg: 'Server error', err });
     });
 };
