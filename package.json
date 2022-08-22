@@ -21,12 +21,15 @@
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.13.0",
+    "@types/express-fileupload": "^1.2.3",
     "cors": "^2.8.5",
     "dayjs": "^1.10.7",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "express-fileupload": "^1.4.0",
     "express-validator": "^6.11.1",
     "firebase-admin": "^10.0.0",
+    "mariadb": "^3.0.0",
     "morgan": "^1.10.0",
     "mqtt": "^4.2.8",
     "rotating-file-stream": "^2.1.6"

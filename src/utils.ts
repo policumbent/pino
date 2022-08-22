@@ -1,3 +1,4 @@
+import { flux } from '@influxdata/influxdb-client';
 import path from 'path';
 import * as rfs from 'rotating-file-stream';
 
@@ -5,34 +6,55 @@ import { firebase } from './services';
 import { Sensors, HistoryData } from './services/mqtt/types';
 
 /* Sensors costants */
-export const bikes = ['taurusx', 'taurus', 'phoenix'];
 export const ws = ['ws1', 'ws_test'];
 
 /* Utility for message parsing */
 
-interface Destination {
-  id: string;
+interface MqttMessage {
   type: string;
   name: string;
   datatype: string;
+  sensor: string;
 }
-
+export interface AntData {
+  timestamp: number;
+  speed: number;
+  distance: number;
+  cadence: number;
+  power: number;
+  heartrate: number;
+}
+export interface GpsData {
+  timestamp: number;
+  timestampGPS: string;
+  speed: number;
+  distance: number;
+  latitude: number;
+  longitude: number;
+  altitude: number;
+  satellites: number;
+  distance2timing: number;
+}
+export interface GearData {
+  timestamp: number;
+  gear: number;
+}
 /**
  * Parse mqtt message and get destination based on its topic
  *
  * @param topic
  * @returns
  */
-export function getDestinationMessage(topic: string): Destination {
+export function getMqttMessageInfo(topic: string): MqttMessage {
   const elements = topic.split('/');
-  return { id: elements[3], type: elements[0], name: elements[1], datatype: elements[2] };
+  return { type: elements[0], name: elements[1], datatype: elements[2], sensor: elements[3] };
 }
 
-export function isBike(data: Destination): boolean {
+export function isBike(data: MqttMessage, bikes: string[]): boolean {
   return data.type === 'bikes' && bikes.includes(data.name);
 }
 
-export function isWeatherStation(data: Destination): boolean {
+export function isWeatherStation(data: MqttMessage): boolean {
   return data.type === 'weather_stations' && ws.includes(data.name);
 }
 
